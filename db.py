@@ -11,7 +11,7 @@ if not os.path.exists('./data/fogadasok.txt'):
 if not os.path.exists('./data/eredmenyek.txt'):
 	open('./data/eredmenyek.txt', "w", encoding="utf-8").close()
 
-
+#
 def getJatekok():
 	jatekok = []
 	with open('./data/jatekok.txt', 'r', encoding='utf-8') as f:
@@ -23,7 +23,7 @@ def getJatekok():
 			if ";" in line:
 				jatekok.append(models.Jatek(text))
 				text = ""
-			text += line
+			text += line 
 		jatekok.append(models.Jatek(text))
 	return jatekok
 
