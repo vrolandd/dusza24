@@ -1,5 +1,6 @@
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+from ttkbootstrap.scrolled import ScrolledFrame
 
 
 app = ttk.Window(title="KandOS", themename='litera')
@@ -91,40 +92,26 @@ def jatek_lezarasa(base):
 	
 	ttk.Label(box, text="Játék lezárása", font=("TkDefaultFont", 20)).pack(padx=10, pady=4)
 	ttk.Label(box, text="Lajos és Bettina programjának futása", font=("TkDefaultFont", 12)).pack(padx=10, pady=5)
-	form_frame = ttk.Frame(box)
-	form_frame.pack()
+	
+	form_frame = ScrolledFrame(box)
+	form_frame.pack(padx=5, pady=5, expand=True, fill=BOTH)
 
-	ttk.Label(form_frame, text="Fogadó neve:").grid(row=0, column=0, padx=5, pady=5)
-	szervezo = ttk.Entry(form_frame, width=50)
-	szervezo.grid(row=0, column=1, columnspan=2, padx=5, pady=5)
+	for i in range(20):
+		asdf = ttk.Frame(form_frame)
+		ttk.Label(asdf, text=f"{i}. alany eredményei").grid(row=0, column=0, padx=5, pady=5)
+		ttk.Label(asdf, text="Esemény 1:").grid(row=1, column=0, padx=5, pady=5)
+		ttk.Entry(asdf).grid(row=1, column=1, padx=5, pady=5)
+		ttk.Label(asdf, text="Esemény 2:").grid(row=1, column=2, padx=5, pady=5)
+		ttk.Entry(asdf).grid(row=1, column=3, padx=5, pady=5)
+		ttk.Label(asdf, text="Esemény 3:").grid(row=2, column=0, padx=5, pady=5)
+		ttk.Entry(asdf).grid(row=2, column=1, padx=5, pady=5)
+		ttk.Label(asdf, text="Esemény 4:").grid(row=2, column=2, padx=5, pady=5)
+		ttk.Entry(asdf).grid(row=2, column=3, padx=5, pady=5)
+		asdf.pack(padx=5, pady=8)
 
-	ttk.Label(form_frame, text="Tét (1-100):").grid(row=1, column=0, padx=5, pady=5)
-	tet = ttk.Entry(form_frame, width=50, state=DISABLED)
-	tet.grid(row=1, column=1, columnspan=2, padx=5, pady=5)
 
-	jatekok = ttk.Treeview(form_frame, columns=('jatekok'), show='headings')
-	jatekok.grid(row=2, column=0, padx=5, pady=5)
-	jatekok.column("jatekok", anchor=W)
-	jatekok.heading("jatekok", text="Játék", anchor=W)
-	for i in range(100):
-		jatekok.insert('', 'end', values=(i,))
-
-	alanyok = ttk.Treeview(form_frame, columns=('alanyok'), show='headings')
-	alanyok.grid(row=2, column=1, padx=5, pady=5)
-	alanyok.column("alanyok", anchor=W)
-	alanyok.heading("alanyok", text="Alany", anchor=W)
-
-	esemenyek = ttk.Treeview(form_frame, columns=('esemenyek'), show='headings')
-	esemenyek.grid(row=2, column=2, padx=5, pady=5)
-	esemenyek.column("esemenyek", anchor=W)
-	esemenyek.heading("esemenyek", text="Esemény", anchor=W)
-
-	ttk.Label(form_frame, text="Eredmény:").grid(row=3, column=0, padx=5, pady=5)
-	eredmeny = ttk.Entry(form_frame, width=50)
-	eredmeny.grid(row=3, column=1, columnspan=2, padx=5, pady=5)
-
-	fogadasLeadasaBTN = ttk.Button(form_frame, text="Fogadás leadása", bootstyle="success", command=lambda: print("ok"))
-	fogadasLeadasaBTN.grid(row=4, column=0, columnspan=3, padx=5, pady=5)
+	lezarasBTN = ttk.Button(box, text="Fogadás leadása", bootstyle="success", command=lambda: print("ok"))
+	lezarasBTN.pack(padx=5, pady=5)
 
 
 mainframe = ttk.Frame(app)
@@ -149,7 +136,7 @@ ujjatek = ttk.Button(actionbar, text="Játék létrehozása", bootstyle="success
 ujjatek.pack(padx=5, pady=5, side=LEFT)
 fogadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app))
 fogadas.pack(padx=5, pady=5, side=LEFT)
-lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=uj_jatek)
+lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=lambda: jatek_lezarasa(app))
 lezaras.pack(padx=5, pady=5, side=LEFT)
 lezaras = ttk.Button(actionbar, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())
 lezaras.pack(padx=5, pady=5, side=LEFT)
