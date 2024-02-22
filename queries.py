@@ -54,24 +54,33 @@ def userRanking():
 
     return sortedUsers
 
-
+def betStats(game:models.Jatek):
+    betStats = {}
+    for subject in game.alanyok:
+        for event in game.esemenyek:
+            betStats[f'{event}-{subject}'] = {}
+            betStats[f'{event}-{subject}']['NumOfBets'] = 0
+            betStats[f'{event}-{subject}']['BetAmount'] = 0
+            betStats[f'{event}-{subject}']['WinAmount'] = 0
+            for bet in db.fogadasok():
+                if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev:
+                    betStats[f'{event}-{subject}']['NumOfBets'] += 1
+                    betStats[f'{event}-{subject}']['BetAmount'] += bet.osszeg
+            for result in db.eredmenyek():
+                if result.jatek.nev == game.nev and result.alany == subject and result.esemeny == event:
+                    for bet in db.fogadasok():
+                        if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev and bet.ertek == result.ertek: betStats[f'{event}-{subject}']['WinAmount'] += bet.osszeg * result.szorzo
     
+    print(betStats, end='\n\n' + '-----' * 10 + '\n\n')
 
+# for game in db.jatekok(): # betStats test
+#     betStats(game)
 
-
-
-# NumOfBets, BetAmount, WinAmount
-
-
-
-
-# for user in userRanking():
+# for user in userRanking(): # userRanking test
 #     print(user.nev, user.pontok, user.rank)
 
-
-# gameStats()
-
-# printUser()
-printGame()
-printBet()
-printResult()
+# gameStats() # gameStats test
+# printUser() # print all users
+# printGame() # print all games
+# printBet() # print all bets
+# printResult() # print all results
