@@ -84,3 +84,9 @@ def betStats(game:models.Jatek):
 # printGame() # print all games
 # printBet() # print all bets
 # printResult() # print all results
+
+# TODO: History / Logs in SQLite [For point calculation]
+# TODO: Rename file
+# TODO: Remake methods to return values
+# TODO: Points calculation method
+# TODO: Multiplier calculation method
