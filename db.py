@@ -17,14 +17,23 @@ _hasher = PasswordHasher()
 _connection = sqlite3.connect('./data/main.db')
 _cursor = _connection.cursor()
 
-def bejelentkezes(nev:str, jelszo:str = None) -> models.Felhasznalo | None:
+def bejelentkezes(nev:str, jelszo:str = None) -> models.Felhasznalo | str:
 	_cursor.execute("SELECT rowid, Nev, Pontok, Jelszo FROM Felhasznalok WHERE Nev = ?;", (nev,))
-	felh = _cursor.fetchone()
+	resp = _cursor.fetchone()
+	if not resp:
+		return "nincs_ilyen_felhasznalo"
 	try:
-		_hasher.verify(felh[3], jelszo)
-		return models.Felhasznalo(*felh[:3])
+		_hasher.verify(resp[3], jelszo)
+		return models.Felhasznalo(*resp[:3])
 	except Exception:
-		return None
+		return "helytelen_jelszo"
+
+def regisztracio(nev:str, jelszo:str) -> models.Felhasznalo:
+	_cursor.execute("INSERT INTO Felhasznalok (Nev, Jelszo, Pontok) VALUES (?, ?, 100);", (nev, _hasher.hash(jelszo)))
+	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok WHERE Nev = ?;", (nev,))
+	resp = _cursor.fetchone()
+	_connection.commit()
+	return models.Felhasznalo(*resp)
 	
 def felhasznalok() -> list[models.Felhasznalo]:
 	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok;")

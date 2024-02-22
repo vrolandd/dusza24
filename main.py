@@ -7,6 +7,8 @@ import db
 
 app = ttk.Window(title="KandOS", themename='litera')
 
+currentUser = None
+
 def uj_jatek(base):
 	box = ttk.Toplevel(base)
 	box.title("KandOS - Játék létrehozása")
@@ -113,30 +115,67 @@ def jatek_lezarasa(base, jatekId:int):
 mainframe = ttk.Frame(app)
 mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-tview = ttk.Frame(mainframe)
-tview.pack(padx=5, pady=5, expand=True, fill=BOTH)
-jatekok = ttk.Treeview(tview, columns=('szervezo', 'nev'), show='headings', selectmode='browse')
-jatekok.heading("szervezo", text="Szervező")
-jatekok.heading("nev", text="Játék neve")
-jatekok.pack(padx=5, pady=5, expand=True, fill=BOTH, side=LEFT)
-yscroll = ttk.Scrollbar(tview, orient=VERTICAL, command=jatekok.yview)
-yscroll.pack(side=RIGHT, fill=Y)
-jatekok.configure(yscrollcommand=yscroll.set)
+def majd_kirotlom_de_most_jo():
+	app.geometry("650x500")
+	app.minsize(600, 400)
+	for widget in mainframe.winfo_children():
+		widget.destroy()
+	treecontainer = ttk.Frame(mainframe)
+	treecontainer.pack(padx=5, pady=5, expand=True, fill=BOTH)
+	jatekok = ttk.Treeview(treecontainer, columns=('szervezo', 'nev'), show='headings', selectmode='browse')
+	jatekok.heading("szervezo", text="Szervező")
+	jatekok.heading("nev", text="Játék neve")
+	jatekok.pack(padx=5, pady=5, expand=True, fill=BOTH, side=LEFT)
+	yscroll = ttk.Scrollbar(treecontainer, orient=VERTICAL, command=jatekok.yview)
+	yscroll.pack(side=RIGHT, fill=Y)
+	jatekok.configure(yscrollcommand=yscroll.set)
 
-for v in db.jatekok():
-	jatekok.insert('', 'end', iid=v.id, values=(v.szervezo.nev, v.nev))
+	for v in db.jatekok():
+		jatekok.insert('', 'end', iid=v.id, values=(v.szervezo.nev, v.nev))
 
-actionbar = ttk.Frame(mainframe)
-actionbar.pack(padx=5, pady=5)
-ujjatek = ttk.Button(actionbar, text="Játék létrehozása", bootstyle="success", command=lambda: uj_jatek(app))
-ujjatek.pack(padx=5, pady=5, side=LEFT)
-fogadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.ok("Válassz egy játékot!", "KandOS - Hiba", True, app))
-fogadas.pack(padx=5, pady=5, side=LEFT)
-lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.ok("Válassz egy játékot!", "KandOS - Hiba", True, app))
-lezaras.pack(padx=5, pady=5, side=LEFT)
-lezaras = ttk.Button(actionbar, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())
-lezaras.pack(padx=5, pady=5, side=LEFT)
+	actionbar = ttk.Frame(mainframe)
+	actionbar.pack(padx=5, pady=5)
+	ujjatek = ttk.Button(actionbar, text="Játék létrehozása", bootstyle="success", command=lambda: uj_jatek(app))
+	ujjatek.pack(padx=5, pady=5, side=LEFT)
+	fogadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
+	fogadas.pack(padx=5, pady=5, side=LEFT)
+	lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
+	lezaras.pack(padx=5, pady=5, side=LEFT)
+	lezaras = ttk.Button(actionbar, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())
+	lezaras.pack(padx=5, pady=5, side=LEFT)
 
-app.geometry("650x500")
-app.minsize(600, 400)
+def login_check(nev, jelszo):
+	currentUser = db.bejelentkezes(nev, jelszo)
+	if currentUser == "nincs_ilyen_felhasznalo":
+		if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
+			currentUser = db.regisztracio(nev, jelszo)
+	elif currentUser == "helytelen_jelszo":
+		Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
+	else:
+		majd_kirotlom_de_most_jo()
+
+def login_view():
+	for widget in mainframe.winfo_children():
+		widget.destroy()
+	app.geometry("300x300")
+	app.minsize(300, 300)
+	ttk.Label(mainframe, text="Bejelentkezés", font=("TkDefaultFont", 20)).pack(padx=10, pady=10)
+	ttk.Label(mainframe, text="Felhasználónév:").pack(padx=10, pady=(10, 0))
+	nev = ttk.Entry(mainframe)
+	nev.pack(pady=5)
+	ttk.Label(mainframe, text="Jelszó:").pack(padx=10, pady=(10, 0))
+	jelszo = ttk.Entry(mainframe, show="*")
+	jelszo.pack(pady=5)
+	buttons = ttk.Frame(mainframe)
+	buttons.pack()
+	ttk.Button(buttons, text="Kilépés", bootstyle="danger", command=lambda: app.destroy()).pack(padx=5, pady=5, side=LEFT)
+	ttk.Button(buttons, text="Tovább >>", bootstyle="success", command=lambda: login_check(nev.get(), jelszo.get())).pack(padx=5, pady=5, side=LEFT)
+
+# TODO: fogadas vagy szervezes view válaszó
+# TODO: user menu jobb felül és szerepkör választó bal felül
+# TODO: fogado view: saját fogadásaim, fogadás törlése?, elérhető jatekok
+# TODO: szervezo view: saját versenyeim, lezárás lehetősége, új verseny
+	
+
+login_view()
 app.mainloop()
