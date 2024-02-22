@@ -6,7 +6,7 @@ class Felhasznalo:
 	
 
 class Jatek:
-	def __init__(self, id:int, szervezo:int, nev:str, alanyok:str, esemenyek:str):
+	def __init__(self, id:int, nev:str, alanyok:str, esemenyek:str, szervezo:Felhasznalo):
 		self.id = id
 		self.szervezo = szervezo
 		self.nev = nev
@@ -15,7 +15,7 @@ class Jatek:
 
 
 class Fogadas:
-	def __init__(self, id:int, fogado:int, jatek:int, osszeg:int, alany:str, esemeny:str, ertek:str):
+	def __init__(self, id:int, osszeg:int, alany:str, esemeny:str, ertek:str, fogado:Felhasznalo, jatek:Jatek):
 		self.id = id
 		self.fogado = fogado
 		self.jatek = jatek
@@ -26,7 +26,7 @@ class Fogadas:
 
 
 class Eredmeny:
-	def __init__(self, id:int, jatek:int, alany:str, esemeny:str, ertek:str, szorzo:int):
+	def __init__(self, id:int, alany:str, esemeny:str, ertek:str, szorzo:int, jatek:Jatek):
 		self.id = id
 		self.jatek = jatek
 		self.alany = alany
