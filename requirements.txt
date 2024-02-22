@@ -1,1 +1,2 @@
 ttkbootstrap
+argon2-cffi

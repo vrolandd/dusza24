@@ -1,7 +1,8 @@
 import os, shutil
-from time import sleep
 import models
 import sqlite3
+from argon2 import PasswordHasher
+
 
 if not os.path.exists('./data'):
 	os.mkdir('./data')
@@ -12,13 +13,22 @@ if not os.path.exists('./data/main.db'):
 		print("NO DATABASE FOUND!")
 		exit(1)
 	
+_hasher = PasswordHasher()
 _connection = sqlite3.connect('./data/main.db')
 _cursor = _connection.cursor()
 
 def bejelentkezes(nev:str, jelszo:str = None) -> models.Felhasznalo | None:
-	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok WHERE Nev = ? AND Jelszo = ?;", (nev, jelszo))
+	_cursor.execute("SELECT rowid, Nev, Pontok, Jelszo FROM Felhasznalok WHERE Nev = ?;", (nev,))
 	felh = _cursor.fetchone()
-	return models.Felhasznalo(*felh) if felh else None
+	try:
+		_hasher.verify(felh[3], jelszo)
+		return models.Felhasznalo(*felh[:3])
+	except Exception:
+		return None
+	
+def felhasznalok() -> list[models.Felhasznalo]:
+	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok;")
+	return [models.Felhasznalo(*row) for row in _cursor.fetchall()]
 
 def jatekok() -> list[models.Jatek]:
 	_cursor.execute("""
@@ -43,9 +53,9 @@ def fogadasok() -> list[models.Fogadas]:
 def eredmenyek() -> list[models.Eredmeny]:
 	_cursor.execute("""
 		SELECT Eredmenyek.rowid, Eredmenyek.Alany, Eredmenyek.Esemeny, Eredmenyek.Ertek, Eredmenyek.Szorzo,
-					Jatekok.rowid, Jatekok.Nev, Jatekok.Alanyok, Jatekok.Esemenyek, 
-					Felhasznalok.rowid, Felhasznalok.Nev, Felhasznalok.Pontok
+				Jatekok.rowid, Jatekok.Nev, Jatekok.Alanyok, Jatekok.Esemenyek, 
+				Felhasznalok.rowid, Felhasznalok.Nev, Felhasznalok.Pontok
 		FROM Eredmenyek 
-		INNER JOIN Jatekok ON Jatekok.rowid = Esemenyek.JatekId
+		INNER JOIN Jatekok ON Jatekok.rowid = Eredmenyek.JatekId
 		INNER JOIN Felhasznalok ON Felhasznalok.rowid = Jatekok.SzervezoId;""")
 	return [models.Eredmeny(*row[:5], models.Jatek(*row[5:9], models.Felhasznalo(*row[9:]))) for row in _cursor.fetchall()]
