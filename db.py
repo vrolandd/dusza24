@@ -1,52 +1,26 @@
-import os
-from . import models
-
+import os, shutil
+import models
+import sqlite3
 
 if not os.path.exists('./data'):
 	os.mkdir('./data')
-if not os.path.exists('./data/jatekok.txt'):
-	open('./data/jatekok.txt', "w", encoding="utf-8").close()
-if not os.path.exists('./data/fogadasok.txt'):
-	open('./data/fogadasok.txt', "w", encoding="utf-8").close()
-if not os.path.exists('./data/eredmenyek.txt'):
-	open('./data/eredmenyek.txt', "w", encoding="utf-8").close()
+if not os.path.exists('./data/main.db'):
+	if os.path.exists('./data/template.db'):
+		shutil.copyfile('./data/template.db', './data/main.db')
+	else:
+		print("NO DATABASE FOUND!")
+		exit(1)
+	
+_connection = sqlite3.connect('./data/main.db')
+_cursor = _connection.cursor()
 
-#
-def getJatekok():
-	jatekok = []
-	with open('./data/jatekok.txt', 'r', encoding='utf-8') as f:
-		lines = f.readlines()
-		text = lines[0]
-		for line in lines[1:]:
-			if not line.strip():
-				continue
-			if ";" in line:
-				jatekok.append(models.Jatek(text))
-				text = ""
-			text += line 
-		jatekok.append(models.Jatek(text))
-	return jatekok
+def bejelentkezes(nev:str, jelszo:str = None) -> models.Felhasznalo | None:
+	_cursor.execute("SELECT rowid, Nev, Pontok FROM felhasznalok WHERE Nev = ? AND Jelszo = ?", (nev, jelszo))
+	felh = _cursor.fetchone()
+	return models.Felhasznalo(*felh) if felh else None
 
+def jatekok() -> list[models.Jatek]:
+	_cursor.execute("SELECT rowid, * FROM Jatekok")
+	return [models.Jatek(*row) for row in _cursor.fetchall()]
 
-def getFogadasok():
-	fogadasok = []
-	with open('./data/fogadasok.txt', 'r', encoding='utf-8') as f:
-		for line in f.readlines():
-			fogadasok.append(models.Fogadas(line.strip()))
-	return fogadasok
-
-
-def getEredmenyek():
-	eredmenyek = []
-	with open('./data/eredmenyek.txt', 'r', encoding='utf-8') as f:
-		lines = f.readlines()
-		text = lines[0]
-		for line in lines[1:]:
-			if not line.strip():
-				continue
-			if not ";" in line:
-				eredmenyek.append(models.Jatek(text))
-				text = ""
-			text += line
-		eredmenyek.append(models.Jatek(text))
-	return eredmenyek
+print(jatekok()[0].szervezo)
