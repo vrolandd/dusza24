@@ -137,6 +137,31 @@ def jatek_lezarasa(base, jatekId: int):
 	lezarasBTN = ttk.Button(box, text="Játék lezárása", bootstyle="warning", command=lambda: print("ok"))
 	lezarasBTN.pack(padx=5, pady=5)
 
+def jelszo_modositas():
+	box = ttk.Toplevel(app)
+	box.title("KandOS - Jelszó módosítása")
+	box.geometry("300x250")
+	
+	frame1 = ttk.Frame(box)
+	frame1.pack(pady=5)
+	ttk.Label(frame1, text="Új jelszó", font=("TkDefaultFont", 14)).pack(padx=5, pady=5, fill=X)
+	jelszo1 = ttk.Entry(frame1, show="*")
+	jelszo1.pack(padx=5, pady=5, fill=X)
+	frame2 = ttk.Frame(box)
+	frame2.pack(pady=5)
+	ttk.Label(frame2, text="Új jelszó újra", font=("TkDefaultFont", 14)).pack(padx=5, pady=5, fill=X)
+	jelszo2 = ttk.Entry(frame2, show="*")
+	jelszo2.pack(padx=5, pady=5, fill=X)
+
+	def __cmd():
+		if not jelszo1.get() == jelszo2.get():
+			Messagebox.show_error("A megadott jelszavak nem egyeznek.\nPróbáld újra!", title="KandOS - Hiba", parent=box)
+		db.jelszo_modositas(currentUser.id, jelszo1.get())
+		box.destroy()
+		Messagebox.ok("A jelszavad sikeresen módosult.", title="KandOS - Sikeres jelszó módosítás")
+	jelszomodBTN = ttk.Button(box, text="Jelszó módosítása", bootstyle="warning", command=__cmd)
+	jelszomodBTN.pack(padx=5, pady=5)
+
 
 mainframe = ttk.Frame(app)
 mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
@@ -160,8 +185,9 @@ def szervezo_view(base):
 	def update_jatekok():
 		for item in jatekok.get_children():
 			jatekok.delete(item)
+		nemlezart = [x.id for x in db.jatekok(felhasznaloId=currentUser.id, include_lezart=False)]
 		for v in db.jatekok(felhasznaloId=currentUser.id):
-			jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem', '2024.02.23 14:33'))
+			jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem' if v.id in nemlezart else 'Igen', '2024.02.23 14:33'))
 	updaters.append(update_jatekok)
 	update_jatekok()
 
@@ -251,7 +277,7 @@ def mode_select():
 	menubtn = ttk.Menubutton(base, direction="below", text=currentUser.nev, bootstyle="light")
 	menu = ttk.Menu(menubtn, tearoff=0)
 	menubtn['menu'] = menu
-	menu.add_command(label="Jelszó megváltoztatása")
+	menu.add_command(label="Jelszó megváltoztatása", command=jelszo_modositas)
 	menu.add_command(label="Kijelentkezés", command=logout)
 	menu.add_separator()
 	menu.add_command(label="Kilépés", command=lambda: app.destroy())

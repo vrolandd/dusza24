@@ -35,7 +35,11 @@ def regisztracio(nev:str, jelszo:str) -> models.Felhasznalo:
 	resp = _cursor.fetchone()
 	_connection.commit()
 	return models.Felhasznalo(*resp)
-	
+
+def jelszo_modositas(felhasznaloId:int, ujJelszo:str):
+	_cursor.execute("UPDATE Felhasznalok SET Jelszo = ? WHERE rowid = ?;", (_hasher.hash(ujJelszo), felhasznaloId))
+	_connection.commit()
+
 def felhasznalok() -> list[models.Felhasznalo]:
 	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok;")
 	return [models.Felhasznalo(*row) for row in _cursor.fetchall()]
