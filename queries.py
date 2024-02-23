@@ -89,7 +89,10 @@ def calcPoints(game:models.Jatek): # Calculate the users' points based on the en
                 if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
 
-    return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for user in users:
+        db.updateUsers(user.nev, user.pontok)
+
+    # return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None): # Kiszámítja, hogy mi LESZ a szorzó, ha 
@@ -118,6 +121,11 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         return 6
 
 
+# for game in db.jatekok():
+#     calcPoints(game)
+
+
+
 # for result in db.eredmenyek():
 #     calcPoints(result.esemeny)
 
@@ -139,15 +147,13 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
 #     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
 
 
-for game in db.jatekok():
-    print(showMultipliers(game))
-    print('\n\n\n' + '---------' * 10 + '\n\n\n')
+# for game in db.jatekok():
+#     print(showMultipliers(game))
+#     print('\n\n\n' + '---------' * 10 + '\n\n\n')
 
 
 
-    # for bet in calcPoints(result.esemeny):
-    #     print(bet.esemeny, bet.id)
-    #     print(bet.fogado.nev, bet.fogado.pontok)
+    # 
 
 # for bet in db.fogadasok():
 #     print(bet.fogado.nev, bet.fogado.pontok)
