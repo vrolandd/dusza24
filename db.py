@@ -1,6 +1,7 @@
 import os, shutil
 import models
 import sqlite3
+
 from argon2 import PasswordHasher
 
 
@@ -90,9 +91,15 @@ def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, er
 	_cursor.execute("COMMIT;")
 	_connection.commit()
 
-def updateUsers(id, points):
-	_cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (points, id))
-	_connection.commit()
-
-def updateResults():
-	_cursor.execute('UPDATE Eredmenyek SET')
+def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multiplier:int):
+	try:
+		_cursor.execute('BEGIN TRANSACTION;')
+		for subject in results:
+			for event in subject:
+				_cursor.execute('INSERT INTO Eredmeny (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, subject[event], multiplier))
+		for user in users: _cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (user.pontok, user.id))
+		_cursor.execute('COMMIT;')
+		_connection.commit()
+	except Exception as e:
+		print(e)
+		_cursor.execute('ROLLBACK;')

@@ -89,13 +89,12 @@ def calcPoints(game:models.Jatek): # Calculate the users' points based on the en
                 if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
 
-    for user in users:
-        db.updateUsers(user.id, user.pontok)
+    return users # Return a new users list with the updated points.
 
-    # return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    
 
 
-def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None): # Kiszámítja, hogy mi LESZ a szorzó, ha 
+def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None):
     """Call this every time the user opens the betting page. This returns every subject - event - value pair's multiplier. If the optional variables are given, which should be at the moment when the game is closed, it returns the winning value's multiplier."""
     multiplierDict = {}
 
