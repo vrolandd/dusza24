@@ -39,13 +39,15 @@ def felhasznalok() -> list[models.Felhasznalo]:
 	_cursor.execute("SELECT rowid, Nev, Pontok FROM Felhasznalok;")
 	return [models.Felhasznalo(*row) for row in _cursor.fetchall()]
 
-def jatekok(jatekId:int = None, felhasznaloId:int = None) -> list[models.Jatek]:
+def jatekok(jatekId:int = None, felhasznaloId:int = None, include_lezart = True) -> list[models.Jatek]:
 	_cursor.execute(f"""
 		SELECT Jatekok.rowid, Jatekok.Nev, Jatekok.Alanyok, Jatekok.Esemenyek, 
 					Felhasznalok.rowid, Felhasznalok.Nev, Felhasznalok.Pontok 
 		FROM Jatekok 
 		INNER JOIN Felhasznalok ON Felhasznalok.rowid = Jatekok.SzervezoId
-		WHERE {"Jatekok.rowid = ?" if jatekId else "1"}
+		{"LEFT JOIN Eredmenyek ON Jatekok.rowid = Eredmenyek.JatekId" if not include_lezart else ""}
+		WHERE {"Eredmenyek.rowid IS NULL" if not include_lezart else "1"}
+		AND {"Jatekok.rowid = ?" if jatekId else "1"}
 		AND {"Jatekok.SzervezoId = ?" if felhasznaloId else "1"};""",
 		tuple(filter(None, (jatekId, felhasznaloId))))
 	return [models.Jatek(*row[:4], models.Felhasznalo(*row[4:])) for row in _cursor.fetchall()]
@@ -82,13 +84,17 @@ def uj_jatek(szervezoId:int, nev:str, alanyok:list[str], esemenyek:list[str]):
 	_connection.commit()
 
 def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, ertek:str):
-	_cursor.execute("BEGIN TRANSACTION;")
-	_cursor.execute("UPDATE Felhasznalok SET Pontok = Pontok - ? WHERE rowid = ?;",
-		(osszeg, fogadoId))
-	_cursor.execute("INSERT INTO Fogadasok (FogadoId, JatekId, Osszeg, Alany, Esemeny, Ertek) VALUES (?, ?, ?, ?, ?, ?);",
-		(fogadoId, jatekId, osszeg, alany, esemeny, ertek))
-	_cursor.execute("COMMIT;")
-	_connection.commit()
+	try:
+		_cursor.execute("BEGIN TRANSACTION;")
+		_cursor.execute("UPDATE Felhasznalok SET Pontok = Pontok - ? WHERE rowid = ?;",
+			(osszeg, fogadoId))
+		_cursor.execute("INSERT INTO Fogadasok (FogadoId, JatekId, Osszeg, Alany, Esemeny, Ertek) VALUES (?, ?, ?, ?, ?, ?);",
+			(fogadoId, jatekId, osszeg, alany, esemeny, ertek))
+		_cursor.execute("COMMIT;")
+		_connection.commit()
+	except Exception as e:
+		_cursor.execute("ROLLBACK;")
+		raise e
 
 def updateUsers(id, points):
 	_cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (points, id))

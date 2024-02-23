@@ -190,7 +190,7 @@ def fogado_view(base):
 	def update_jatekok():
 		for item in jatekok.get_children():
 			jatekok.delete(item)
-		for v in db.jatekok():
+		for v in db.jatekok(include_lezart=False):
 			jatekok.insert('', 'end', iid=v.id, values=(v.nev, v.szervezo.nev))
 	updaters.append(update_jatekok)
 	update_jatekok()
