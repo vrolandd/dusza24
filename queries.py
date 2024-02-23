@@ -2,22 +2,22 @@ import db
 import models
 from typing import List
 
-def printGame():
+def printGame(): # Delete later
     for game in db.jatekok():
         print(f'ID: {game.id}\n\tSzervező: {game.szervezo}\n\tNév: {game.nev}\n\tAlanyok: {game.alanyok}\n\tEsemények: {game.esemenyek}')
     print('\n' + '---' * 10 + '\n')
 
-def printBet():
+def printBet(): # Delete later
     for bet in db.fogadasok():
         print(f'ID: {bet.id}\n\tFogadó: {bet.fogado}\n\tJáték: {bet.jatek.nev}\n\tÖsszeg: {bet.osszeg}\n\tAlany: {bet.alany}\n\tEsemény: {bet.esemeny}\n\tJáték: {bet.jatek}\n\tÉrték: {bet.ertek}')
     print('\n' + '---' * 10 + '\n')
 
-def printResult():
+def printResult(): # Delete later
     for result in db.eredmenyek():
         print(f'ID: {result.id}\n\tJáték: {result.jatek.nev}\n\tAlany: {result.alany}\n\tEsemény: {result.esemeny}\n\tÉrték: {result.ertek}\n\tSzorzó: {result.szorzo}')
     print('\n' + '---' * 10 + '\n')
 
-def printUser():
+def printUser(): # Delete later
     for user in db.felhasznalok():
         print(f'ID: {user.id}\n\tNév: {user.nev}\n\tPontok: {user.pontok}')
     print('\n' + '---' * 10 + '\n')
@@ -42,16 +42,19 @@ def gameStats():
     print(gameStats)
 
 def userRanking(users:List[models.Felhasznalo]):
-    sortedUsers = sorted(users, key=lambda user: user.pontok, reverse=True)
+    sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
     rank = 1
     prevPoints = None
+    id = 0 # Not using user.id 'cus of the posibility of user deletion feature breaking the WHOLE FUCKING METHOD, AND MIGHT CAUSE THE EFFECT OF ME BREAKING YOUR NECK
     for user in sortedUsers:
+        user.pontok = round(user.pontok)
         if user.pontok != prevPoints: user.rank = rank
         else: user.rank = prevRank
         prevRank = user.rank
         prevPoints = user.pontok
         rank += 1
-        sortedUsers[user.id-1] = user
+        sortedUsers[id] = user
+        id += 1
 
     return sortedUsers
 
@@ -77,6 +80,19 @@ def betStats(game:models.Jatek):
 # for game in db.jatekok(): # betStats test
 #     betStats(game)
 
+def calcPoints(event:str, game:models.Jatek): # Calculate the users' points based on the ended bets' results.
+    """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
+    users = db.felhasznalok()
+    for result in db.eredmenyek():
+        if result.esemeny == event and result.jatek.nev == game.nev:
+            for bet in db.fogadasok():
+                if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
+                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
+
+    return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# for result in db.eredmenyek():
+#     calcPoints(result.esemeny)
 
 
 # gameStats() # gameStats test
@@ -86,25 +102,20 @@ def betStats(game:models.Jatek):
 # printResult() # print all results
 
 # TODO: History / Logs in SQLite [For point calculation] (?)
-# TODO: Rename file (!)
-# TODO: Remake methods to return values (!)
-# TODO: Points calculation method
+# TODO: Rename file (Low priority)
+# TODO: Remake methods to return values (Low priority)
+# TODO: Points calculation method (DONE)
 # TODO: Multiplier calculation method
 
-def calcPoints(event): # Calculate the users' points based on the ended bets' results.
-    users = db.felhasznalok()
-    for result in db.eredmenyek():
-        if result.esemeny == event:
-            for bet in db.fogadasok():
-                if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
-                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
 
-    return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+def calcMultiplier():
+    """Call this immediately after ending a bet 'event', then update the completed events in the database."""
+    pass
 
 
 
-for result in db.eredmenyek():
-    calcPoints(result.esemeny)
+
     # for bet in calcPoints(result.esemeny):
     #     print(bet.esemeny, bet.id)
     #     print(bet.fogado.nev, bet.fogado.pontok)
