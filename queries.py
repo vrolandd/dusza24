@@ -80,11 +80,11 @@ def betStats(game:models.Jatek):
 # for game in db.jatekok(): # betStats test
 #     betStats(game)
 
-def calcPoints(event:str, game:models.Jatek): # Calculate the users' points based on the ended bets' results.
+def calcPoints(game:models.Jatek): # Calculate the users' points based on the ended bets' results.
     """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
     users = db.felhasznalok()
     for result in db.eredmenyek():
-        if result.esemeny == event and result.jatek.nev == game.nev:
+        if result.esemeny in game.esemenyek and result.alany in game.alanyok and result.jatek.nev == game.nev:
             for bet in db.fogadasok():
                 if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
@@ -109,9 +109,23 @@ def calcPoints(event:str, game:models.Jatek): # Calculate the users' points base
 
 
 
-def calcMultiplier():
-    """Call this immediately after ending a bet 'event', then update the completed events in the database."""
-    pass
+# def calcMultiplier(game:models.Jatek):
+#     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
+#     # Choose one.
+#     # 1st:
+#     if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return False
+#     if not any(checkGame.jatek.nev == game.name for checkGame in db.eredmenyek()):
+#         """IM GONNA KMS"""
+#         for bet in db.fogadasok():
+#             if bet.jatek.nev == game.nev
+#     pass
+
+def showMultipliers(game:models.Jatek):
+    if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return None
+    if any(checkGame.jatek.nev == game.name for checkGame in db.eredmenyek()): return None
+    
+
+
 
 
 

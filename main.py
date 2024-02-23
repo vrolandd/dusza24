@@ -207,7 +207,7 @@ def fogado_view(base):
 
 	actionbar = ttk.Frame(base)
 	actionbar.pack(padx=5, pady=5)
-	ujjatek = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: uj_jatek(app))
+	ujjatek = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
 	ujjatek.pack(padx=5, pady=5, side=LEFT)
 	lezaras = ttk.Button(actionbar, text="Fogadás módosítása", bootstyle="success", 
 			command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
