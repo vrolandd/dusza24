@@ -1,5 +1,6 @@
 import db
 import models
+from typing import List
 
 def printGame():
     for game in db.jatekok():
@@ -13,7 +14,7 @@ def printBet():
 
 def printResult():
     for result in db.eredmenyek():
-        print(f'ID: {result.id}\n\tJáték: {result.jatek.nev}\n\tAlany: {result.alany}\n\tEsemény: {result.esemeny}\n\Érték: {result.ertek}\n\tSzorzó: {result.szorzo}')
+        print(f'ID: {result.id}\n\tJáték: {result.jatek.nev}\n\tAlany: {result.alany}\n\tEsemény: {result.esemeny}\n\tÉrték: {result.ertek}\n\tSzorzó: {result.szorzo}')
     print('\n' + '---' * 10 + '\n')
 
 def printUser():
@@ -40,8 +41,8 @@ def gameStats():
         
     print(gameStats)
 
-def userRanking():
-    sortedUsers = sorted(db.felhasznalok(), key=lambda user: user.pontok, reverse=True)
+def userRanking(users:List[models.Felhasznalo]):
+    sortedUsers = sorted(users, key=lambda user: user.pontok, reverse=True)
     rank = 1
     prevPoints = None
     for user in sortedUsers:
@@ -76,8 +77,7 @@ def betStats(game:models.Jatek):
 # for game in db.jatekok(): # betStats test
 #     betStats(game)
 
-# for user in userRanking(): # userRanking test
-#     print(user.nev, user.pontok, user.rank)
+
 
 # gameStats() # gameStats test
 # printUser() # print all users
@@ -85,8 +85,32 @@ def betStats(game:models.Jatek):
 # printBet() # print all bets
 # printResult() # print all results
 
-# TODO: History / Logs in SQLite [For point calculation]
-# TODO: Rename file
-# TODO: Remake methods to return values
+# TODO: History / Logs in SQLite [For point calculation] (?)
+# TODO: Rename file (!)
+# TODO: Remake methods to return values (!)
 # TODO: Points calculation method
 # TODO: Multiplier calculation method
+
+def calcPoints(event): # Calculate the users' points based on the ended bets' results.
+    users = db.felhasznalok()
+    for result in db.eredmenyek():
+        if result.esemeny == event:
+            for bet in db.fogadasok():
+                if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
+                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
+
+    return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+for result in db.eredmenyek():
+    calcPoints(result.esemeny)
+    # for bet in calcPoints(result.esemeny):
+    #     print(bet.esemeny, bet.id)
+    #     print(bet.fogado.nev, bet.fogado.pontok)
+
+# for bet in db.fogadasok():
+#     print(bet.fogado.nev, bet.fogado.pontok)
+
+# for user in userRanking(): # userRanking test
+#     print(user.nev, user.pontok, user.rank)
