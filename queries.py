@@ -39,7 +39,7 @@ def gameStats():
                 for bet in db.fogadasok():
                     if result.alany == bet.alany and result.esemeny == bet.esemeny and result.ertek == bet.ertek: gameStats[game.nev]['WinAmount'] += bet.osszeg * result.szorzo
         
-    print(gameStats)
+    return gameStats
 
 def userRanking(users:List[models.Felhasznalo]):
     sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
@@ -73,9 +73,9 @@ def betStats(game:models.Jatek):
             for result in db.eredmenyek():
                 if result.jatek.nev == game.nev and result.alany == subject and result.esemeny == event:
                     for bet in db.fogadasok():
-                        if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev and bet.ertek == result.ertek: betStats[f'{event}-{subject}']['WinAmount'] += bet.osszeg * result.szorzo
+                        if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev and bet.ertek == result.ertek: betStats[f'{event};{subject}']['WinAmount'] += bet.osszeg * result.szorzo
     
-    print(betStats, end='\n\n' + '-----' * 10 + '\n\n')
+    return betStats
 
 # for game in db.jatekok(): # betStats test
 #     betStats(game)
@@ -91,26 +91,6 @@ def calcPoints(game:models.Jatek): # Calculate the users' points based on the en
 
     return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-# for result in db.eredmenyek():
-#     calcPoints(result.esemeny)
-
-
-# gameStats() # gameStats test
-# printUser() # print all users
-# printGame() # print all games
-# printBet() # print all bets
-# printResult() # print all results
-
-# TODO: History / Logs in SQLite [For point calculation] (?)
-# TODO: Rename file (Low priority)
-# TODO: Remake methods to return values (Low priority)
-# TODO: Points calculation method (DONE)
-# TODO: Multiplier calculation method (DONE)
-
-
-
-# def calcMultiplier(game:models.Jatek):
-#     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
 
 def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None): # Kiszámítja, hogy mi LESZ a szorzó, ha 
     # if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return None
@@ -137,13 +117,31 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         return 6
 
 
+# for result in db.eredmenyek():
+#     calcPoints(result.esemeny)
+
+
+# gameStats() # gameStats test
+# printUser() # print all users DELETE
+# printGame() # print all games DELETE
+# printBet() # print all bets DELETE
+# printResult() # print all results DELETE
+
+# TODO: History / Logs in SQLite [For point calculation] (?)
+# TODO: Rename file (Low priority)
+# TODO: Remake methods to return values (Low priority)
+# TODO: Points calculation method (DONE)
+# TODO: Multiplier calculation method (DONE)
+
+
+
+# def calcMultiplier(game:models.Jatek):
+#     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
+
+
 # for game in db.jatekok():
 #     print(showMultipliers(game, 'qweqwe', 'fgddfg', 'igen'))
 #     print('\n\n\n' + '---------' * 10 + '\n\n\n')
-
-
-
-
 
 
 
