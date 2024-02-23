@@ -102,7 +102,7 @@ def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipli
 		_cursor.execute('BEGIN TRANSACTION;')
 		for subject in results:
 			for event in subject:
-				_cursor.execute('INSERT INTO Eredmeny (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, subject[event], multiplier))
+				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, subject[event], multiplier))
 		for user in users: _cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (user.pontok, user.id))
 		_cursor.execute('COMMIT;')
 		_connection.commit()
