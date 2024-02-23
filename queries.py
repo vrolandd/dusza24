@@ -45,7 +45,7 @@ def userRanking(users:List[models.Felhasznalo]):
     sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
     rank = 1
     prevPoints = None
-    id = 0 # Not using user.id 'cus of the posibility of user deletion feature breaking the WHOLE FUCKING METHOD, AND MIGHT CAUSE THE EFFECT OF ME BREAKING YOUR NECK
+    id = 0 # Not using user.id because of the posibility of user deletion feature breaking everything.
     for user in sortedUsers:
         user.pontok = round(user.pontok)
         if user.pontok != prevPoints: user.rank = rank
@@ -78,7 +78,7 @@ def betStats(game:models.Jatek):
     return betStats
 
 # for game in db.jatekok(): # betStats test
-#     betStats(game)
+#     print(betStats(game))
 
 def calcPoints(game:models.Jatek): # Calculate the users' points based on the ended bets' results.
     """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
@@ -89,26 +89,27 @@ def calcPoints(game:models.Jatek): # Calculate the users' points based on the en
                 if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
 
-    return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    for user in users:
+        db.updateUsers(user.id, user.pontok)
+
+    # return users # Return a new users list with the updated points. USE THIS IN THE DATABASE UPDATE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None): # Kiszámítja, hogy mi LESZ a szorzó, ha 
-    # if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return None
-    # if any(checkGame.jatek.nev == game.nev for checkGame in db.eredmenyek()): return 'Egy kibaszott gyökér vagy'
-
+    """Call this every time the user opens the betting page. This returns every subject - event - value pair's multiplier. If the optional variables are given, which should be at the moment when the game is closed, it returns the winning value's multiplier."""
     multiplierDict = {}
 
     for subject in game.alanyok:
         for event in game.esemenyek:
             for bet in db.fogadasok():
                 if bet.alany == subject and bet.esemeny == event:
-                    multiplierDict[f'{subject};{event};{bet.ertek}'] = multiplierDict.get(f'{subject};{event};{bet.ertek}', 0) + bet.osszeg
+                    multiplierDict[f'{subject};{event};{bet.ertek}'] = multiplierDict.get(f'{subject};{event};{bet.ertek}', 0) + 1 # => bet.osszeg: Pénz alapján számítja, 1: Emberek száma alapján számítja.
 
-
-    pointSum = sum(map(lambda x: x[1], multiplierDict.items()))
+    # pointSum = sum(map(lambda x: x[1], multiplierDict.items())) # Használd ezt, ha összeg alapján számítjuk.
 
     for key in multiplierDict:
-        multiplierDict[key] = round(multiplierDict[key] / pointSum * 5, 2)
+        multiplierDict[key] = 1 + round(5 / (2 ** (multiplierDict[key] - 1)), 2) # Használd ezt, ha emberek száma alapján számítjuk.
+        # multiplierDict[key] = 1 + round((1 - multiplierDict[key] / pointSum) * 5, 2) # Használd ezt, ha összeg alapján számítjuk.
     
     try:
         if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}']
@@ -117,9 +118,11 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         return 6
 
 
+# for game in db.jatekok():
+#     calcPoints(game)
+
 # for result in db.eredmenyek():
 #     calcPoints(result.esemeny)
-
 
 # gameStats() # gameStats test
 # printUser() # print all users DELETE
@@ -127,27 +130,9 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
 # printBet() # print all bets DELETE
 # printResult() # print all results DELETE
 
-# TODO: History / Logs in SQLite [For point calculation] (?)
-# TODO: Rename file (Low priority)
-# TODO: Remake methods to return values (Low priority)
-# TODO: Points calculation method (DONE)
-# TODO: Multiplier calculation method (DONE)
-
-
-
-# def calcMultiplier(game:models.Jatek):
-#     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
-
-
 # for game in db.jatekok():
-#     print(showMultipliers(game, 'qweqwe', 'fgddfg', 'igen'))
+#     print(showMultipliers(game))
 #     print('\n\n\n' + '---------' * 10 + '\n\n\n')
-
-
-
-    # for bet in calcPoints(result.esemeny):
-    #     print(bet.esemeny, bet.id)
-    #     print(bet.fogado.nev, bet.fogado.pontok)
 
 # for bet in db.fogadasok():
 #     print(bet.fogado.nev, bet.fogado.pontok)

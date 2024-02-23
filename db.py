@@ -89,3 +89,10 @@ def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, er
 		(fogadoId, jatekId, osszeg, alany, esemeny, ertek))
 	_cursor.execute("COMMIT;")
 	_connection.commit()
+
+def updateUsers(id, points):
+	_cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (points, id))
+	_connection.commit()
+
+def updateResults():
+	_cursor.execute('UPDATE Eredmenyek SET')
