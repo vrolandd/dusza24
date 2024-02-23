@@ -62,14 +62,14 @@ def betStats(game:models.Jatek):
     betStats = {}
     for subject in game.alanyok:
         for event in game.esemenyek:
-            betStats[f'{event}-{subject}'] = {}
-            betStats[f'{event}-{subject}']['NumOfBets'] = 0
-            betStats[f'{event}-{subject}']['BetAmount'] = 0
-            betStats[f'{event}-{subject}']['WinAmount'] = 0
+            betStats[f'{event};{subject}'] = {}
+            betStats[f'{event};{subject}']['NumOfBets'] = 0
+            betStats[f'{event};{subject}']['BetAmount'] = 0
+            betStats[f'{event};{subject}']['WinAmount'] = 0
             for bet in db.fogadasok():
                 if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev:
-                    betStats[f'{event}-{subject}']['NumOfBets'] += 1
-                    betStats[f'{event}-{subject}']['BetAmount'] += bet.osszeg
+                    betStats[f'{event};{subject}']['NumOfBets'] += 1
+                    betStats[f'{event};{subject}']['BetAmount'] += bet.osszeg
             for result in db.eredmenyek():
                 if result.jatek.nev == game.nev and result.alany == subject and result.esemeny == event:
                     for bet in db.fogadasok():
@@ -105,25 +105,42 @@ def calcPoints(game:models.Jatek): # Calculate the users' points based on the en
 # TODO: Rename file (Low priority)
 # TODO: Remake methods to return values (Low priority)
 # TODO: Points calculation method (DONE)
-# TODO: Multiplier calculation method
+# TODO: Multiplier calculation method (DONE)
 
 
 
 # def calcMultiplier(game:models.Jatek):
 #     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
-#     # Choose one.
-#     # 1st:
-#     if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return False
-#     if not any(checkGame.jatek.nev == game.name for checkGame in db.eredmenyek()):
-#         """IM GONNA KMS"""
-#         for bet in db.fogadasok():
-#             if bet.jatek.nev == game.nev
-#     pass
 
-def showMultipliers(game:models.Jatek):
-    if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return None
-    if any(checkGame.jatek.nev == game.name for checkGame in db.eredmenyek()): return None
+def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None): # Kiszámítja, hogy mi LESZ a szorzó, ha 
+    # if not any(checkGame.jatek.nev == game.name for checkGame in db.fogadasok()): return None
+    # if any(checkGame.jatek.nev == game.nev for checkGame in db.eredmenyek()): return 'Egy kibaszott gyökér vagy'
+
+    multiplierDict = {}
+
+    for subject in game.alanyok:
+        for event in game.esemenyek:
+            for bet in db.fogadasok():
+                if bet.alany == subject and bet.esemeny == event:
+                    multiplierDict[f'{subject};{event};{bet.ertek}'] = multiplierDict.get(f'{subject};{event};{bet.ertek}', 0) + bet.osszeg
+
+
+    pointSum = sum(map(lambda x: x[1], multiplierDict.items()))
+
+    for key in multiplierDict:
+        multiplierDict[key] = round(multiplierDict[key] / pointSum * 5, 2)
     
+    try:
+        if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}']
+        else: return multiplierDict
+    except(KeyError):
+        return 6
+
+
+# for game in db.jatekok():
+#     print(showMultipliers(game, 'qweqwe', 'fgddfg', 'igen'))
+#     print('\n\n\n' + '---------' * 10 + '\n\n\n')
+
 
 
 
