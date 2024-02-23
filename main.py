@@ -9,16 +9,23 @@ app = ttk.Window(title="KandOS", themename='litera')
 
 currentUser: db.models.Felhasznalo | str = "kijelentkezve"
 
+updaters = []
+def updateAll():
+	remove = []
+	for u in updaters:
+		try: u()
+		except Exception: 
+			remove.append(u)
+	for r in remove:
+		updaters.remove(r)
+
 def uj_jatek(base):
 	box = ttk.Toplevel(base)
-	box.title("KandOS - Játék létrehozása")
+	box.title("KandOS - Új Játék")
 	box.geometry("500x500")
-	ttk.Label(box, text="Játék létrehozása", font=("TkDefaultFont", 20)).pack(padx=10, pady=10)
+	ttk.Label(box, text="Új Játék", font=("TkDefaultFont", 20)).pack(padx=10, pady=10)
 	form_frame = ttk.Frame(box)
 	form_frame.pack()
-	ttk.Label(form_frame, text="Szervező:").grid(row=0, column=0, padx=5, pady=5)
-	szervezo = ttk.Entry(form_frame)
-	szervezo.grid(row=0, column=1, padx=5, pady=5)
 	ttk.Label(form_frame, text="Játék neve:").grid(row=1, column=0, padx=5, pady=5)
 	jatekneve = ttk.Entry(form_frame)
 	jatekneve.grid(row=1, column=1, padx=5, pady=5)
@@ -30,7 +37,7 @@ def uj_jatek(base):
 	alanyok.bind('<ButtonRelease-1>', lambda _: alanyok.delete(alanyok.selection()) if alanyok.selection() else None)
 	
 	ujalany = ttk.Entry(form_frame)
-	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get())), ujalany.delete(0, END)))
+	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get())), ujalany.delete(0, END)) if ujalany.get() else None)
 	ujalany.grid(row=3, column=0, padx=5, pady=5)
 
 	esemenyek = ttk.Treeview(form_frame, columns=("esemenyek"), show='headings', selectmode='browse')
@@ -40,73 +47,91 @@ def uj_jatek(base):
 	esemenyek.bind('<ButtonRelease-1>', lambda _: esemenyek.delete(esemenyek.selection()) if esemenyek.selection() else None)
 
 	ujesemeny = ttk.Entry(form_frame)
-	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get())), ujesemeny.delete(0, END)))
+	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get())), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
 	ujesemeny.grid(row=3, column=1, padx=5, pady=5)
 
-	ujjatekBTN = ttk.Button(form_frame, text="Játék létrehozása", bootstyle="success", command=lambda: print("ok"))
+	def __cmd():
+		try:
+			if not (jatekneve.get() and alanyok.get_children() and esemenyek.get_children()):
+				raise Exception("Kitöltetlen mezők")
+			db.uj_jatek(currentUser.id, jatekneve.get(), set([alanyok.item(x)["values"][0] for x in alanyok.get_children()]), set([esemenyek.item(x)["values"][0] for x in esemenyek.get_children()]))
+			box.destroy()
+			updateAll()
+		except Exception as e:
+			print(e)
+			Messagebox.show_error("Hiba történt a játék készítése közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
+	ujjatekBTN = ttk.Button(form_frame, text="Játék létrehozása", bootstyle="success", command=__cmd)
 	ujjatekBTN.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
 
 def fogadas_leadasa(base, jatekId:int):
+	jatek = db.jatekok(jatekId)[0]
 	box = ttk.Toplevel(base)
 	box.title("KandOS - Fogadás leadása")
 	box.geometry("500x550")
 	
 	ttk.Label(box, text="Fogadás leadása", font=("TkDefaultFont", 20)).pack(padx=10, pady=4)
-	ttk.Label(box, text="Lajos és Bettina programjának futása", font=("TkDefaultFont", 12)).pack(padx=10, pady=5)
+	ttk.Label(box, text=jatek.nev, font=("TkDefaultFont", 12)).pack(padx=10, pady=5)
 	
 	form_frame = ttk.Frame(box)
 	form_frame.pack()
 
-	ttk.Label(form_frame, text="Fogadó neve:").grid(row=0, column=0, padx=5, pady=5)
-	szervezo = ttk.Entry(form_frame, width=25)
-	szervezo.grid(row=0, column=1, padx=5, pady=5)
-
-	ttk.Label(form_frame, text="Tét (1-100):").grid(row=1, column=0, padx=5, pady=5)
-	tet = ttk.Entry(form_frame, width=25, state=DISABLED)
+	ttk.Label(form_frame, text=f"Tét (1-{currentUser.pontok}):").grid(row=1, column=0, padx=5, pady=5)
+	tet = ttk.Entry(form_frame, width=25)
 	tet.grid(row=1, column=1, padx=5, pady=5)
 
 	alanyok = ttk.Treeview(form_frame, columns=('alanyok'), show='headings', selectmode='browse')
 	alanyok.grid(row=2, column=0, padx=5, pady=5)
 	alanyok.column("alanyok", anchor=W)
 	alanyok.heading("alanyok", text="Alany", anchor=W)
+	for alany in jatek.alanyok:
+		alanyok.insert('', 'end', iid=alany, values=(alany,))
 
 	esemenyek = ttk.Treeview(form_frame, columns=('esemenyek'), show='headings', selectmode='browse')
 	esemenyek.grid(row=2, column=1, padx=5, pady=5)
 	esemenyek.column("esemenyek", anchor=W)
 	esemenyek.heading("esemenyek", text="Esemény", anchor=W)
+	for esemeny in jatek.esemenyek:
+		esemenyek.insert('', 'end', iid=esemeny, values=(esemeny,))
 
 	ttk.Label(form_frame, text="Eredmény:").grid(row=3, column=0, padx=5, pady=5)
 	eredmeny = ttk.Entry(form_frame, width=25)
 	eredmeny.grid(row=3, column=1, padx=5, pady=5)
 
-	fogadasLeadasaBTN = ttk.Button(form_frame, text="Fogadás leadása", bootstyle="success", command=lambda: print("ok"))
+	def __cmd():
+		try:
+			if not (0 < int(tet.get()) < currentUser.pontok and alanyok.selection()[0] and esemenyek.selection()[0] and eredmeny.get()):
+				raise Exception('Kitöltetlen vagy helytelen mezők')
+			currentUser.pontok -= int(tet.get())
+			db.uj_fogadas(currentUser.id, jatekId, int(tet.get()), alanyok.selection()[0], esemenyek.selection()[0], eredmeny.get())
+			box.destroy()
+			updateAll()
+		except Exception as e:
+			print(e)
+			Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
+	fogadasLeadasaBTN = ttk.Button(form_frame, text="Fogadás leadása", bootstyle="success", command=__cmd)
 	fogadasLeadasaBTN.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
-def jatek_lezarasa(base, jatekId:int):
+def jatek_lezarasa(base, jatekId: int):
+	jatek = db.jatekok(jatekId)[0]
 	box = ttk.Toplevel(base)
 	box.title("KandOS - Játék lezárása")
 	box.geometry("700x550")
 	
 	ttk.Label(box, text="Játék lezárása", font=("TkDefaultFont", 20)).pack(padx=10, pady=4)
-	ttk.Label(box, text="Lajos és Bettina programjának futása", font=("TkDefaultFont", 12)).pack(padx=10, pady=5)
+	ttk.Label(box, text=jatek.nev, font=("TkDefaultFont", 14)).pack(padx=10, pady=5)
 	
 	form_frame = ScrolledFrame(box)
 	form_frame.pack(padx=5, pady=5, expand=True, fill=BOTH)
-
-	for i in range(20):
-		asdf = ttk.Frame(form_frame)
-		ttk.Label(asdf, text=f"{i}. alany eredményei").grid(row=0, column=0, padx=5, pady=5)
-		ttk.Label(asdf, text="Esemény 1:").grid(row=1, column=0, padx=5, pady=5)
-		ttk.Entry(asdf).grid(row=1, column=1, padx=5, pady=5)
-		ttk.Label(asdf, text="Esemény 2:").grid(row=1, column=2, padx=5, pady=5)
-		ttk.Entry(asdf).grid(row=1, column=3, padx=5, pady=5)
-		ttk.Label(asdf, text="Esemény 3:").grid(row=2, column=0, padx=5, pady=5)
-		ttk.Entry(asdf).grid(row=2, column=1, padx=5, pady=5)
-		ttk.Label(asdf, text="Esemény 4:").grid(row=2, column=2, padx=5, pady=5)
-		ttk.Entry(asdf).grid(row=2, column=3, padx=5, pady=5)
-		asdf.pack(padx=5, pady=8)
-
+	eredmenyek = {}
+	for alany in jatek.alanyok:
+		alany_frame = ttk.Frame(form_frame)
+		eredmenyek[alany] = {}
+		ttk.Label(alany_frame, text=f"{alany} eredményei:", justify=LEFT, font=("TkDefaultFont", 12)).grid(row=0, column=0, columnspan=2, padx=5, pady=5, )
+		for i, esemeny in enumerate(jatek.esemenyek):
+			ttk.Label(alany_frame, text=f"{esemeny}:").grid(row=i//2+1, column=0 if i%2==0 else 2, padx=5, pady=5)
+			eredmenyek[alany][esemeny] = ttk.Entry(alany_frame).grid(row=i//2+1, column=1 if i%2==0 else 3, padx=5, pady=5)
+		alany_frame.pack(padx=5, pady=8)
 
 	lezarasBTN = ttk.Button(box, text="Játék lezárása", bootstyle="warning", command=lambda: print("ok"))
 	lezarasBTN.pack(padx=5, pady=5)
@@ -115,40 +140,12 @@ def jatek_lezarasa(base, jatekId:int):
 mainframe = ttk.Frame(app)
 mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-def majd_kirotlom_de_most_jo():
-	app.geometry("650x500")
-	app.minsize(600, 400)
-	for widget in mainframe.winfo_children():
-		widget.destroy()
-	treecontainer = ttk.Frame(mainframe)
-	treecontainer.pack(padx=5, pady=5, expand=True, fill=BOTH)
-	jatekok = ttk.Treeview(treecontainer, columns=('szervezo', 'nev'), show='headings', selectmode='browse')
-	jatekok.heading("szervezo", text="Szervező")
-	jatekok.heading("nev", text="Játék neve")
-	jatekok.pack(padx=5, pady=5, expand=True, fill=BOTH, side=LEFT)
-	yscroll = ttk.Scrollbar(treecontainer, orient=VERTICAL, command=jatekok.yview)
-	yscroll.pack(side=RIGHT, fill=Y)
-	jatekok.configure(yscrollcommand=yscroll.set)
-
-	for v in db.jatekok():
-		jatekok.insert('', 'end', iid=v.id, values=(v.szervezo.nev, v.nev))
-
-	actionbar = ttk.Frame(mainframe)
-	actionbar.pack(padx=5, pady=5)
-	ujjatek = ttk.Button(actionbar, text="Játék létrehozása", bootstyle="success", command=lambda: uj_jatek(app))
-	ujjatek.pack(padx=5, pady=5, side=LEFT)
-	fogadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	fogadas.pack(padx=5, pady=5, side=LEFT)
-	lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	lezaras.pack(padx=5, pady=5, side=LEFT)
-	lezaras = ttk.Button(actionbar, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())
-	lezaras.pack(padx=5, pady=5, side=LEFT)
-
 def szervezo_view(base):
 	for widget in base.winfo_children():
 		widget.destroy()
 	app.geometry("700x500")
 	app.minsize(600, 400)
+	ttk.Label(base, text="Játékaim:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	treecontainer = ttk.Frame(base)
 	treecontainer.pack(padx=5, pady=5, expand=True, fill=BOTH)
 	jatekok = ttk.Treeview(treecontainer, columns=('nev', 'lezart', 'autolezar'), show='headings', selectmode='browse')
@@ -159,9 +156,13 @@ def szervezo_view(base):
 	yscroll = ttk.Scrollbar(treecontainer, orient=VERTICAL, command=jatekok.yview)
 	yscroll.pack(side=RIGHT, fill=Y)
 	jatekok.configure(yscrollcommand=yscroll.set)
-
-	for v in db.jatekok():
-		jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem', '2024.02.23 14:33'))
+	def update_jatekok():
+		for item in jatekok.get_children():
+			jatekok.delete(item)
+		for v in db.jatekok(felhasznaloId=currentUser.id):
+			jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem', '2024.02.23 14:33'))
+	updaters.append(update_jatekok)
+	update_jatekok()
 
 	actionbar = ttk.Frame(base)
 	actionbar.pack(padx=5, pady=5)
@@ -186,8 +187,13 @@ def fogado_view(base):
 	yscroll = ttk.Scrollbar(treecontainer, orient=VERTICAL, command=jatekok.yview)
 	yscroll.pack(side=RIGHT, fill=Y)
 	jatekok.configure(yscrollcommand=yscroll.set)
-	for v in db.jatekok():
-		jatekok.insert('', 'end', iid=v.id, values=(v.nev, v.szervezo.nev))
+	def update_jatekok():
+		for item in jatekok.get_children():
+			jatekok.delete(item)
+		for v in db.jatekok():
+			jatekok.insert('', 'end', iid=v.id, values=(v.nev, v.szervezo.nev))
+	updaters.append(update_jatekok)
+	update_jatekok()
 
 	ttk.Label(base, text="Fogadásaim:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	treecontainer2 = ttk.Frame(base)
@@ -202,19 +208,25 @@ def fogado_view(base):
 	yscroll2 = ttk.Scrollbar(treecontainer2, orient=VERTICAL, command=fogadasaim.yview)
 	yscroll2.pack(side=RIGHT, fill=Y)
 	fogadasaim.configure(yscrollcommand=yscroll2.set)
-	for v in db.fogadasok():
-		fogadasaim.insert('', 'end', iid=v.id, values=(v.jatek.nev, v.alany, v.esemeny, v.ertek, v.osszeg))
+	def update_fogadasaim():
+		for item in fogadasaim.get_children():
+			fogadasaim.delete(item)
+		for v in db.fogadasok(felhasznaloId=currentUser.id):
+			fogadasaim.insert('', 'end', iid=v.id, values=(v.jatek.nev, v.alany, v.esemeny, v.ertek, v.osszeg))
+	updaters.append(update_fogadasaim)
+	update_fogadasaim()
 
 	actionbar = ttk.Frame(base)
 	actionbar.pack(padx=5, pady=5)
-	ujjatek = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	ujjatek.pack(padx=5, pady=5, side=LEFT)
-	lezaras = ttk.Button(actionbar, text="Fogadás módosítása", bootstyle="success", 
+	leadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", 
+			command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
+	leadas.pack(padx=5, pady=5, side=LEFT)
+	modositas = ttk.Button(actionbar, text="Fogadás módosítása", bootstyle="success", 
 			command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	lezaras.pack(padx=5, pady=5, side=LEFT)
-	lezaras = ttk.Button(actionbar, text="Fogadás törlése", bootstyle="warning", 
+	modositas.pack(padx=5, pady=5, side=LEFT)
+	torles = ttk.Button(actionbar, text="Fogadás törlése", bootstyle="warning", 
 			command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	lezaras.pack(padx=5, pady=5, side=LEFT)
+	torles.pack(padx=5, pady=5, side=LEFT)
 
 def mode_select():
 	global currentUser
@@ -255,6 +267,7 @@ def login_or_register(nev, jelszo):
 	if currentUser == "nincs_ilyen_felhasznalo":
 		if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
 			currentUser = db.regisztracio(nev, jelszo)
+			mode_select()
 	elif currentUser == "helytelen_jelszo":
 		Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
 	else:
