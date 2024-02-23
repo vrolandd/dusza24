@@ -69,6 +69,9 @@ def eredmenyek() -> list[models.Eredmeny]:
 		INNER JOIN Felhasznalok ON Felhasznalok.rowid = Jatekok.SzervezoId;""")
 	return [models.Eredmeny(*row[:5], models.Jatek(*row[5:9], models.Felhasznalo(*row[9:]))) for row in _cursor.fetchall()]
 
-def updateUsers(name, points):
-	_cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE Nev = ?;', (points, name))
+def updateUsers(id, points):
+	_cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (points, id))
 	_connection.commit()
+
+def updateResults():
+	_cursor.execute('UPDATE Eredmenyek SET')
