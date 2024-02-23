@@ -102,13 +102,14 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         for event in game.esemenyek:
             for bet in db.fogadasok():
                 if bet.alany == subject and bet.esemeny == event:
-                    multiplierDict[f'{subject};{event};{bet.ertek}'] = multiplierDict.get(f'{subject};{event};{bet.ertek}', 0) + bet.osszeg
+                    multiplierDict[f'{subject};{event};{bet.ertek}'] = multiplierDict.get(f'{subject};{event};{bet.ertek}', 0) + 1 # => bet.osszeg: Pénz alapján számítja, 1: Emberek száma alapján számítja.
 
 
-    pointSum = sum(map(lambda x: x[1], multiplierDict.items()))
+    # pointSum = sum(map(lambda x: x[1], multiplierDict.items())) # Használd ezt, ha összeg alapján számítjuk.
 
     for key in multiplierDict:
-        multiplierDict[key] = round(multiplierDict[key] / pointSum * 5, 2)
+        multiplierDict[key] = 1 + round(5 / (2 ** (multiplierDict[key] - 1)), 2) # Használd ezt, ha emberek száma alapján számítjuk.
+        # multiplierDict[key] = 1 + round((1 - multiplierDict[key] / pointSum) * 5, 2) # Használd ezt, ha összeg alapján számítjuk.
     
     try:
         if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}']
@@ -127,9 +128,8 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
 # printBet() # print all bets DELETE
 # printResult() # print all results DELETE
 
-# TODO: History / Logs in SQLite [For point calculation] (?)
 # TODO: Rename file (Low priority)
-# TODO: Remake methods to return values (Low priority)
+# TODO: Remake methods to return values (DONE)
 # TODO: Points calculation method (DONE)
 # TODO: Multiplier calculation method (DONE)
 
@@ -139,9 +139,9 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
 #     """Call this every time AFTER someone makes a bet. If you end a game, call this immediately, and THEN update the completed events in the database."""
 
 
-# for game in db.jatekok():
-#     print(showMultipliers(game, 'qweqwe', 'fgddfg', 'igen'))
-#     print('\n\n\n' + '---------' * 10 + '\n\n\n')
+for game in db.jatekok():
+    print(showMultipliers(game))
+    print('\n\n\n' + '---------' * 10 + '\n\n\n')
 
 
 
