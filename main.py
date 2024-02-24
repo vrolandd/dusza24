@@ -64,7 +64,6 @@ def uj_jatek(base):
 	ujjatekBTN = ttk.Button(form_frame, text="Játék létrehozása", bootstyle="success", command=__cmd)
 	ujjatekBTN.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
 
-
 def fogadas_leadasa(base, jatekId:int):
 	jatek = db.jatekok(jatekId)[0]
 	box = ttk.Toplevel(base)
@@ -147,7 +146,6 @@ def jatek_lezarasa(base, jatekId: int):
 		db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)		
 		box.destroy()
 	
-
 def jelszo_modositas():
 	box = ttk.Toplevel(app)
 	box.title("KandOS - Jelszó módosítása")
@@ -342,9 +340,6 @@ def stats_view(base):
 		for key in betStatistics:
 			fogadas.insert('', 'end', iid=None, values=(key.split(';')[0], key.split(';')[1], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
 
-	
-
-
 def mode_select():
 	global currentUser
 	for widget in mainframe.winfo_children():
@@ -412,12 +407,6 @@ def login_view():
 		.grid(row=3, column=0, padx=5, pady=5)
 	ttk.Button(base, text="Tovább >>", bootstyle="success", command=lambda: login_or_register(nev.get(), jelszo.get()))\
 		.grid(row=3, column=1, padx=5, pady=5)
-
-# TODO: fogadas vagy szervezes view válaszó ✅
-# TODO: user menu jobb felül és szerepkör választó bal felül ✅
-# TODO: fogado view: saját fogadásaim, fogadás törlése?, elérhető jatekok ✅
-# TODO: szervezo view: saját versenyeim, lezárás lehetősége, új verseny ✅
-# TODO: automatikusan lezáruló játékok (idő) 🧠
 	
 
 login_view()
