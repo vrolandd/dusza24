@@ -117,7 +117,7 @@ def jatek_lezarasa(base, jatekId: int):
 	jatek = db.jatekok(jatekId)[0]
 	box = ttk.Toplevel(base)
 	box.title("KandOS - Játék lezárása")
-	box.geometry("700x550")
+	box.geometry("700x700")
 	
 	ttk.Label(box, text="Játék lezárása", font=("TkDefaultFont", 20)).pack(padx=10, pady=4)
 	ttk.Label(box, text=jatek.nev, font=("TkDefaultFont", 14)).pack(padx=10, pady=5)
@@ -135,7 +135,7 @@ def jatek_lezarasa(base, jatekId: int):
 		alany_frame.pack(padx=5, pady=8)
 
 	lezarasBTN = ttk.Button(box, text="Játék lezárása", bootstyle="warning", command=lambda: print("ok"))
-	lezarasBTN.pack(padx=5, pady=5)
+	lezarasBTN.pack(padx=5, pady=10)
 
 def jelszo_modositas():
 	box = ttk.Toplevel(app)
@@ -248,11 +248,14 @@ def fogado_view(base):
 	leadas = ttk.Button(actionbar, text="Fogadás leadása", bootstyle="success", 
 			command=lambda: fogadas_leadasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
 	leadas.pack(padx=5, pady=5, side=LEFT)
-	modositas = ttk.Button(actionbar, text="Fogadás módosítása", bootstyle="success", 
-			command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
-	modositas.pack(padx=5, pady=5, side=LEFT)
-	torles = ttk.Button(actionbar, text="Fogadás törlése", bootstyle="warning", 
-			command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
+	def __torlescmd():
+		if not fogadasaim.selection():
+			Messagebox.show_error("Válassz egy fogadást!", "KandOS - Hiba")
+		else:
+			if Messagebox.show_question("Biztos ki szeretnéd törölni a kiválasztott fogadásod?", "KandOS - Fogadás", buttons=['Nem:secondary', 'Igen:primary']) == "Igen":
+				db.fogadas_torles(fogadasaim.selection())
+				updateAll()
+	torles = ttk.Button(actionbar, text="Fogadás törlése", bootstyle="warning", command=__torlescmd)
 	torles.pack(padx=5, pady=5, side=LEFT)
 
 def stats_view(base):
