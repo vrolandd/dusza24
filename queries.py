@@ -80,14 +80,24 @@ def betStats(game:models.Jatek):
 # for game in db.jatekok(): # betStats test
 #     print(betStats(game))
 
-def calcPoints(game:models.Jatek): # Calculate the users' points based on the ended bets' results.
+def calcPoints(game:models.Jatek, results:dict, multipliers:dict): # Calculate the users' points based on the ended bets' results.
     """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
     users = db.felhasznalok()
-    for result in db.eredmenyek():
-        if result.esemeny in game.esemenyek and result.alany in game.alanyok and result.jatek.nev == game.nev:
+
+
+    for subject in results:
+        for event in subject:
+            # subject[event].get()
             for bet in db.fogadasok():
-                if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
-                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
+                if bet.jatek.nev == game.nev and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == subject[event].get():
+                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * multipliers[f'{subject};{event};{subject[event]}']
+
+
+    # for result in db.eredmenyek():
+    #     if result.esemeny in game.esemenyek and result.alany in game.alanyok and result.jatek.nev == game.nev:
+    #         for bet in db.fogadasok():
+    #             if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
+    #                 next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
 
     return users # Return a new users list with the updated points.
 

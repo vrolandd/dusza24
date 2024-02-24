@@ -101,17 +101,15 @@ def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, er
 		_cursor.execute("ROLLBACK;")
 		raise e
 
-def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipliers:list[int]):
-	try:
-		id = 0 # Redo
+def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipliers:dict):
+	# try:
 		_cursor.execute('BEGIN TRANSACTION;')
 		for subject in results:
-			for event in subject:
-				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, subject[event], multipliers[id]))
-				id += 1
+			for event in results[subject]:
+				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, results[subject][event].get(), multipliers[f'{subject};{event};{results[subject][event].get()}']))
 		for user in users: _cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (user.pontok, user.id))
 		_cursor.execute('COMMIT;')
 		_connection.commit()
-	except Exception as e:
-		print(e)
-		_cursor.execute('ROLLBACK;')
+	# except Exception as e:
+		# print(e)
+		# _cursor.execute('ROLLBACK;')

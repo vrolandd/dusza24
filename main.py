@@ -131,11 +131,28 @@ def jatek_lezarasa(base, jatekId: int):
 		ttk.Label(alany_frame, text=f"{alany} eredményei:", justify=LEFT, font=("TkDefaultFont", 12)).grid(row=0, column=0, columnspan=2, padx=5, pady=5, )
 		for i, esemeny in enumerate(jatek.esemenyek):
 			ttk.Label(alany_frame, text=f"{esemeny}:").grid(row=i//2+1, column=0 if i%2==0 else 2, padx=5, pady=5)
-			eredmenyek[alany][esemeny] = ttk.Entry(alany_frame).grid(row=i//2+1, column=1 if i%2==0 else 3, padx=5, pady=5)
+			eredmenyek[alany][esemeny] = ttk.Entry(alany_frame)
+			eredmenyek[alany][esemeny].grid(row=i//2+1, column=1 if i%2==0 else 3, padx=5, pady=5)
 		alany_frame.pack(padx=5, pady=8)
 
-	lezarasBTN = ttk.Button(box, text="Játék lezárása", bootstyle="warning", command=lambda: print("ok"))
+	lezarasBTN = ttk.Button(box, text="Játék lezárása", bootstyle="warning", command=lambda: _lezaras())
 	lezarasBTN.pack(padx=5, pady=5)
+
+	def _lezaras():
+		for subject in eredmenyek:
+			for event in eredmenyek[subject]:
+				if eredmenyek[subject][event].get() == '':
+					Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
+					return
+		
+		
+		multipliers = queries.showMultipliers(jatek)
+		# print(jatekId)
+		# print(eredmenyek)
+		# print(queries.calcPoints(jatek, eredmenyek, multipliers))
+		# print(multipliers)
+		db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)		
+	
 
 def jelszo_modositas():
 	box = ttk.Toplevel(app)
