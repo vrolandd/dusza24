@@ -3,7 +3,7 @@ Baráti társaságokban, munkahelyen vagy egyszerűen csak egy konkrét téma ka
 A programunk megkönnyíti ezeknek a fogadásoknak és a felhasználók pontszámának nyilvántartását.
 
 ## Letöltés / Első lépések
-A program legfrissebb verziója letölthető [innen.](https://github.com/vrolandd/dusza24/releases/tag/latest)
+A program legfrissebb verziója letölthető [innen.](https://github.com/vrolandd/dusza24/releases/latest)
 
 Futtatáshoz szükséges a Python 3.10 vagy újjabb verziója. Letöltés után az alábbi parancsokkal lehet elindítani:
 ```
