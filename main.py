@@ -1,4 +1,4 @@
-from tkinter import IntVar
+from tkinter import IntVar, filedialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -172,6 +172,44 @@ def jelszo_modositas():
 		Messagebox.ok("A jelszavad sikeresen módosult.", title="KandOS - Sikeres jelszó módosítás")
 	jelszomodBTN = ttk.Button(box, text="Jelszó módosítása", bootstyle="warning", command=__cmd)
 	jelszomodBTN.pack(padx=5, pady=5)
+
+def importalas():
+	box = ttk.Toplevel(app)
+	box.title("KandOS - Importálás")
+	box.geometry("400x400")
+	ttk.Label(box, text="Importálás", font=("TkDefaultFont", 20)).pack(padx=10, pady=10, fill=X)
+
+	jatekokL = ttk.Label(box, text="Válassz 'játékok' fájlt")
+	jatekokL.pack(padx=5, pady=5)
+	def __jatekokselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			jatekokL.config(text=file_path)
+	jatekokB = ttk.Button(box, text="Tallózás", command=__jatekokselect)
+	jatekokB.pack(padx=5, pady=5)
+	
+	fogadasokL = ttk.Label(box, text="Válassz 'fogadások' fájlt")
+	fogadasokL.pack(padx=5, pady=5)
+	def __fogadasokselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			fogadasokL.config(text=file_path)
+	fogadasokB = ttk.Button(box, text="Tallózás", command=__fogadasokselect)
+	fogadasokB.pack(padx=5, pady=5)
+	
+	eredmenyekL = ttk.Label(box, text="Válassz 'eredmények' fájlt")
+	eredmenyekL.pack(padx=5, pady=5)
+	def __eredmenyekselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			eredmenyekL.config(text=file_path)
+	eredmenyekB = ttk.Button(box, text="Tallózás", command=__eredmenyekselect)
+	eredmenyekB.pack(padx=5, pady=5)
+
+	ttk.Button(box, text="Adatok importálása", bootstyle="warning").pack(padx=10, pady=10)
 
 def szervezo_view(base):
 	for widget in base.winfo_children():
@@ -363,6 +401,8 @@ def mode_select():
 	menubtn = ttk.Menubutton(base, direction="below", text=currentUser.nev, bootstyle="light")
 	menu = ttk.Menu(menubtn, tearoff=0)
 	menubtn['menu'] = menu
+	menu.add_command(label="Adatok importálása", command=importalas)
+	menu.add_separator()
 	menu.add_command(label="Jelszó megváltoztatása", command=jelszo_modositas)
 	def __logout():
 		global currentUser
