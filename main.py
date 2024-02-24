@@ -8,6 +8,8 @@ import db
 
 
 app = ttk.Window(title="KandOS", themename='litera')
+mainframe = ttk.Frame(app)
+mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 currentUser: db.models.Felhasznalo | str = "kijelentkezve"
 
@@ -170,10 +172,6 @@ def jelszo_modositas():
 		Messagebox.ok("A jelszavad sikeresen módosult.", title="KandOS - Sikeres jelszó módosítás")
 	jelszomodBTN = ttk.Button(box, text="Jelszó módosítása", bootstyle="warning", command=__cmd)
 	jelszomodBTN.pack(padx=5, pady=5)
-
-
-mainframe = ttk.Frame(app)
-mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 def szervezo_view(base):
 	for widget in base.winfo_children():
@@ -366,27 +364,14 @@ def mode_select():
 	menu = ttk.Menu(menubtn, tearoff=0)
 	menubtn['menu'] = menu
 	menu.add_command(label="Jelszó megváltoztatása", command=jelszo_modositas)
-	menu.add_command(label="Kijelentkezés", command=logout)
+	def __logout():
+		global currentUser
+		currentUser = "kijelentkezve"
+		login_view()
+	menu.add_command(label="Kijelentkezés", command=__logout)
 	menu.add_separator()
 	menu.add_command(label="Kilépés", command=lambda: app.destroy())
 	menubtn.pack(padx=10, pady=10, side=RIGHT)
-
-def logout():
-	global currentUser
-	currentUser = "kijelentkezve"
-	login_view()
-
-def login_or_register(nev, jelszo):
-	global currentUser
-	currentUser = db.bejelentkezes(nev, jelszo)
-	if currentUser == "nincs_ilyen_felhasznalo":
-		if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
-			currentUser = db.regisztracio(nev, jelszo)
-			mode_select()
-	elif currentUser == "helytelen_jelszo":
-		Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
-	else:
-		mode_select()
 
 def login_view():
 	for widget in mainframe.winfo_children():
@@ -404,7 +389,18 @@ def login_view():
 	jelszo.grid(row=2, column=1, pady=5)
 	ttk.Button(base, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())\
 		.grid(row=3, column=0, padx=5, pady=5)
-	ttk.Button(base, text="Tovább >>", bootstyle="success", command=lambda: login_or_register(nev.get(), jelszo.get()))\
+	def __login_or_register(nev, jelszo):
+		global currentUser
+		currentUser = db.bejelentkezes(nev, jelszo)
+		if currentUser == "nincs_ilyen_felhasznalo":
+			if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
+				currentUser = db.regisztracio(nev, jelszo)
+				mode_select()
+		elif currentUser == "helytelen_jelszo":
+			Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
+		else:
+			mode_select()
+	ttk.Button(base, text="Tovább >>", bootstyle="success", command=lambda: __login_or_register(nev.get(), jelszo.get()))\
 		.grid(row=3, column=1, padx=5, pady=5)
 	
 
