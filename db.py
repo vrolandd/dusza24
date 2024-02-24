@@ -57,7 +57,7 @@ def jatekok(jatekId:int = None, felhasznaloId:int = None, include_lezart = True)
 		tuple(filter(None, (jatekId, felhasznaloId))))
 	return [models.Jatek(*row[:4], models.Felhasznalo(*row[4:])) for row in _cursor.fetchall()]
 
-def fogadasok(fogadasId:int = None, felhasznaloId:int = None) -> list[models.Fogadas]:
+def fogadasok(fogadasId:int = None, felhasznaloId:int = None, include_lezart = True) -> list[models.Fogadas]:
 	_cursor.execute(f"""
 		SELECT Fogadasok.rowid, Fogadasok.Osszeg, Fogadasok.Alany, Fogadasok.Esemeny, Fogadasok.Ertek, 
 					Felhasznalok.rowid, Felhasznalok.Nev, Felhasznalok.Pontok, 
@@ -67,7 +67,9 @@ def fogadasok(fogadasId:int = None, felhasznaloId:int = None) -> list[models.Fog
 		INNER JOIN Jatekok ON Jatekok.rowid = Fogadasok.JatekId 
 		INNER JOIN Felhasznalok ON Felhasznalok.rowid = Fogadasok.FogadoId
 		INNER JOIN Felhasznalok AS Szervezo ON Jatekok.SzervezoId = Szervezo.rowid
-		WHERE {"Fogadasok.FogadoId = ?" if felhasznaloId else "1"}
+		{"LEFT JOIN Eredmenyek ON Fogadasok.JatekId = Eredmenyek.JatekId" if not include_lezart else ""}
+		WHERE {"Eredmenyek.rowid IS NULL" if not include_lezart else "1"}
+		AND {"Fogadasok.FogadoId = ?" if felhasznaloId else "1"}
 		AND {"Fogadasok.rowid = ?" if fogadasId else "1"};""", 
 		tuple(filter(None, (felhasznaloId, fogadasId))))
 	return [models.Fogadas(*row[:5], models.Felhasznalo(*row[5:8]), models.Jatek(*row[8:12], models.Felhasznalo(*row[12:]))) for row in _cursor.fetchall()]
@@ -100,6 +102,17 @@ def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, er
 	except Exception as e:
 		_cursor.execute("ROLLBACK;")
 		raise e
+	
+def fogadas_torles(fogadasId:int):
+	_cursor.execute("""
+			DELETE FROM Fogadasok 
+			WHERE rowid IN (
+					SELECT Fogadasok.rowid
+					FROM Fogadasok
+					INNER JOIN Eredmenyek ON Fogadasok.JatekId = Eredmenyek.JatekId
+			) AND rowid = ?;
+		""", (fogadasId,))
+	_connection.commit()
 
 def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipliers:dict):
 	# try:
