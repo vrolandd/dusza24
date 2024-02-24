@@ -176,8 +176,10 @@ def jelszo_modositas():
 def importalas():
 	box = ttk.Toplevel(app)
 	box.title("KandOS - Importálás")
-	box.geometry("400x400")
-	ttk.Label(box, text="Importálás", font=("TkDefaultFont", 20)).pack(padx=10, pady=10, fill=X)
+	box.geometry("450x450")
+	box.minsize(450, 450)
+	ttk.Label(box, text="Importálás", font=("TkDefaultFont", 20)).pack(padx=10, pady=10)
+	ttk.Label(box, text="HIBÁS FÁJLOK MEGADÁSA ESETÉN\nAZ ADATBÁZIS SÉRÜLHET", font=("TkDefaultFont", 12)).pack(padx=10, pady=10)
 
 	jatekokL = ttk.Label(box, text="Válassz 'játékok' fájlt")
 	jatekokL.pack(padx=5, pady=5)
@@ -209,7 +211,18 @@ def importalas():
 	eredmenyekB = ttk.Button(box, text="Tallózás", command=__eredmenyekselect)
 	eredmenyekB.pack(padx=5, pady=5)
 
-	ttk.Button(box, text="Adatok importálása", bootstyle="warning").pack(padx=10, pady=10)
+	def __importal():
+		try:
+			if jatekokL.cget('text') == "Válassz 'játékok' fájlt"\
+				or fogadasokL.cget('text') == "Válassz 'fogadások' fájlt"\
+				or eredmenyekL.cget('text') == "Válassz 'eredmények' fájlt":
+				raise Exception("Kitöltetlen mezők")
+			db.importFiles(jatekokL.cget('text'), fogadasokL.cget('text'), eredmenyekL.cget('text'))
+			box.destroy()
+			updateAll()
+		except Exception:
+			Messagebox.show_error("Hiba történt importálás közben!", "KandOS - Hiba", box)
+	ttk.Button(box, text="Adatok importálása", bootstyle="warning", command=__importal).pack(padx=10, pady=10)
 
 def szervezo_view(base):
 	for widget in base.winfo_children():
