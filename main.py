@@ -39,7 +39,7 @@ def uj_jatek(base):
 	alanyok.bind('<ButtonRelease-1>', lambda _: alanyok.delete(alanyok.selection()) if alanyok.selection() else None)
 	
 	ujalany = ttk.Entry(form_frame)
-	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get())), ujalany.delete(0, END)) if ujalany.get() else None)
+	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get().replace(";", " "))), ujalany.delete(0, END)) if ujalany.get() else None)
 	ujalany.grid(row=3, column=0, padx=5, pady=5)
 
 	esemenyek = ttk.Treeview(form_frame, columns=("esemenyek"), show='headings', selectmode='browse')
@@ -49,7 +49,7 @@ def uj_jatek(base):
 	esemenyek.bind('<ButtonRelease-1>', lambda _: esemenyek.delete(esemenyek.selection()) if esemenyek.selection() else None)
 
 	ujesemeny = ttk.Entry(form_frame)
-	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get())), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
+	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get().replace(";", " "))), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
 	ujesemeny.grid(row=3, column=1, padx=5, pady=5)
 
 	def __cmd():
@@ -143,9 +143,9 @@ def jatek_lezarasa(base, jatekId: int):
 				if eredmenyek[subject][event].get() == '':
 					Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 					return
-		
 		multipliers = queries.showMultipliers(jatek)
 		db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)		
+		box.destroy()
 	
 
 def jelszo_modositas():
@@ -206,14 +206,18 @@ def szervezo_view(base):
 	actionbar.pack(padx=5, pady=5)
 	ujjatek = ttk.Button(actionbar, text="Új játék", bootstyle="success", command=lambda: uj_jatek(app))
 	ujjatek.pack(padx=5, pady=5, side=LEFT)
-	lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=lambda: jatek_lezarasa(app, jatekok.selection()[0]) if jatekok.selection() else Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app))
+	def __jateklezar():
+		if not jatekok.selection():
+			Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app)
+		jatek_lezarasa(app, jatekok.selection()[0])
+	lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=__jateklezar)
 	lezaras.pack(padx=5, pady=5, side=LEFT)
 	
 def fogado_view(base):
 	for widget in base.winfo_children():
 		widget.destroy()
 	app.geometry("1200x800")
-	app.minsize(1200, 800)
+	app.minsize(1100, 700)
 	
 	ttk.Label(base, text="Elérhető játékok:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	treecontainer = ttk.Frame(base)
@@ -278,7 +282,7 @@ def stats_view(base):
 	for widget in base.winfo_children():
 		widget.destroy()
 	app.geometry("1100x1200")
-	app.minsize(1100, 1200)
+	app.minsize(1100, 800)
 
 	treecontainer1 = ttk.Frame(base)
 	treecontainer1.pack(padx=5, pady=5, expand=True, fill=BOTH)
