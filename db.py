@@ -193,30 +193,11 @@ def importFiles(gameFile:str = 'jatekok.txt', betFile:str = 'fogadasok.txt', res
 		for key in betDict: keyList.append(betDict[key]['name'])
 		for name in list(set(keyList)):
 			_cursor.execute('INSERT INTO Felhasznalok (Nev, Jelszo, Pontok) VALUES (?, ?, 100)', (name, _hasher.hash('')))
-		_cursor.execute('COMMIT;')
-		_connection.commit()
-	except Exception as e:
-		_cursor.execute('ROLLBACK;')
-		raise e
-
-	try:
-		_cursor.execute('BEGIN TRANSACTION;')
 		for key in gameDict:
 			_cursor.execute('SELECT rowid FROM Felhasznalok WHERE Nev = ?', (gameDict[key]['owner'],))
 			resp = _cursor.fetchone()
 			_cursor.execute('INSERT INTO Jatekok (SzervezoId, Nev, Alanyok, Esemenyek) VALUES (?, ?, ?, ?)', (resp[0], key, gameDict[key]['subjects'][:-1], gameDict[key]['events'][:-1]))
-		
-		_cursor.execute('COMMIT;')
-		_connection.commit()
-
-	except Exception as e:
-		_cursor.execute('ROLLBACK;')
-		raise e
-
-	try:
-		_cursor.execute('BEGIN TRANSACTION;')
 		for key in betDict:
-			# print(betDict[key]['subject'])
 			_cursor.execute('SELECT rowid FROM Felhasznalok WHERE Nev = ?', (betDict[key]['name'],))
 			userResp = _cursor.fetchone()[0]
 			_cursor.execute('SELECT rowid FROM Jatekok WHERE Nev = ?', (betDict[key]['game'],))
@@ -235,3 +216,5 @@ def importFiles(gameFile:str = 'jatekok.txt', betFile:str = 'fogadasok.txt', res
 	except Exception as e:
 		_cursor.execute('ROLLBACK;')
 		raise e
+
+importFiles()
