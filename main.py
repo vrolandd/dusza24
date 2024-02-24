@@ -333,18 +333,16 @@ def stats_view(base):
 	yscroll1 = ttk.Scrollbar(container3, orient=VERTICAL, command=fogadas.yview)
 	yscroll1.pack(side=RIGHT, fill=Y)
 	fogadas.configure(yscrollcommand=yscroll1.set)
-		
-	def showBets(gameId):
-		for bet in fogadas.get_children():
-			fogadas.delete(bet)
+	jatekok.bind('<ButtonRelease-1>', lambda _: _showBets(jatekok.selection()[0]))
 
+	def _showBets(gameId):
+		for bet in fogadas.get_children(): fogadas.delete(bet)
 		game = db.jatekok(gameId)[0]
 		betStatistics = queries.betStats(game)
-		
 		for key in betStatistics:
 			fogadas.insert('', 'end', iid=None, values=(key.split(';')[0], key.split(';')[1], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
 
-	jatekok.bind('<ButtonRelease-1>', lambda _: showBets(jatekok.selection()[0]))
+	
 
 
 def mode_select():

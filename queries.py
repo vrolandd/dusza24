@@ -1,29 +1,28 @@
 import db
 import models
-from typing import List
 
-def printGame(): # Delete later
+def printGame(): # Test
     for game in db.jatekok():
         print(f'ID: {game.id}\n\tSzervező: {game.szervezo}\n\tNév: {game.nev}\n\tAlanyok: {game.alanyok}\n\tEsemények: {game.esemenyek}')
     print('\n' + '---' * 10 + '\n')
 
-def printBet(): # Delete later
+def printBet(): # Test
     for bet in db.fogadasok():
         print(f'ID: {bet.id}\n\tFogadó: {bet.fogado}\n\tJáték: {bet.jatek.nev}\n\tÖsszeg: {bet.osszeg}\n\tAlany: {bet.alany}\n\tEsemény: {bet.esemeny}\n\tJáték: {bet.jatek}\n\tÉrték: {bet.ertek}')
     print('\n' + '---' * 10 + '\n')
 
-def printResult(): # Delete later
+def printResult(): # Test
     for result in db.eredmenyek():
         print(f'ID: {result.id}\n\tJáték: {result.jatek.nev}\n\tAlany: {result.alany}\n\tEsemény: {result.esemeny}\n\tÉrték: {result.ertek}\n\tSzorzó: {result.szorzo}')
     print('\n' + '---' * 10 + '\n')
 
-def printUser(): # Delete later
+def printUser(): # Test
     for user in db.felhasznalok():
         print(f'ID: {user.id}\n\tNév: {user.nev}\n\tPontok: {user.pontok}')
     print('\n' + '---' * 10 + '\n')
 
 
-def gameStats():
+def gameStats(): # Get all games' statistics.
     gameStats = {}
     for game in db.jatekok():
         gameStats[game.id] = {}
@@ -39,25 +38,9 @@ def gameStats():
                 for bet in db.fogadasok():
                     if result.alany == bet.alany and result.esemeny == bet.esemeny and result.ertek == bet.ertek: gameStats[game.id]['WinAmount'] += bet.osszeg * result.szorzo
         
-    return gameStats
+    return gameStats # Return them in a dictionary based on the game ids.
 
-# def userRanking(users:List[models.Felhasznalo]):
-#     sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
-#     rank = 1
-#     prevPoints = None
-#     id = 0 # Not using user.id because of the posibility of user deletion feature breaking everything.
-#     for user in sortedUsers:
-#         user.pontok = round(user.pontok)
-#         if user.pontok != prevPoints: user.rank = rank
-#         else: user.rank = prevRank
-#         prevRank = user.rank
-#         prevPoints = user.pontok
-#         rank += 1
-#         sortedUsers[id] = user
-#         id += 1
-#     return sortedUsers
-
-def betStats(game:models.Jatek):
+def betStats(game:models.Jatek): # Get bet statistics by Game object.
     betStats = {}
     for subject in game.alanyok:
         for event in game.esemenyek:
@@ -74,18 +57,14 @@ def betStats(game:models.Jatek):
                     for bet in db.fogadasok():
                         if bet.alany == subject and bet.esemeny == event and bet.jatek.id == game.id and bet.ertek == result.ertek: betStats[f'{event};{subject}']['WinAmount'] += bet.osszeg * result.szorzo
     
-    return betStats
-
-# for game in db.jatekok(): # betStats test
-#     print(betStats(game))
+    return betStats # Return them in a dictionary based on 'event;subject' combined String.
 
 def calcPoints(game:models.Jatek, results:dict, multipliers:dict): # Calculate the users' points based on the ended bets' results.
-    """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
+    """Call this after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
     users = db.felhasznalok()
 
     for subject in results:
         for event in results[subject]:
-            # subject[event].get()
             for bet in db.fogadasok():
                 if bet.jatek.id == game.id and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == results[subject][event].get():
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += round(bet.osszeg * multipliers[f'{subject};{event};{results[subject][event].get()}'])
@@ -109,30 +88,13 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         # multiplierDict[key] = 1 + round((1 - multiplierDict[key] / pointSum) * 5, 2) # Használd ezt, ha összeg alapján számítjuk.
     
     try:
-        if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}']
-        else: return multiplierDict
-    except(KeyError):
+        if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}'] # If there is a provided bet return only it's multiplier.
+        else: return multiplierDict # Return all multipliers based on Game object.
+    except(KeyError): # If the provided bet does not exists make the multiplier 0.
         return 0
 
-
-# for game in db.jatekok():
-#     calcPoints(game)
-
-# for result in db.eredmenyek():
-#     calcPoints(result.esemeny)
-
 # gameStats() # gameStats test
-# printUser() # print all users DELETE
-# printGame() # print all games DELETE
-# printBet() # print all bets DELETE
-# printResult() # print all results DELETE
-
-# for game in db.jatekok():
-#     print(showMultipliers(game))
-#     print('\n\n\n' + '---------' * 10 + '\n\n\n')
-
-# for bet in db.fogadasok():
-#     print(bet.fogado.nev, bet.fogado.pontok)
-
-# for user in userRanking(): # userRanking test
-#     print(user.nev, user.pontok, user.rank)
+# printUser() # print all users
+# printGame() # print all games
+# printBet() # print all bets
+# printResult() # print all results
