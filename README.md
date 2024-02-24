@@ -8,7 +8,7 @@ Letöltés és egyszeri futtatás után a program létrehoz egy `data` mappát. 
 Ha a program régebbi verziójából meglévő adatainkat szeretnénk használni, bejelentkezés után a felhasználó menüben van lehetőségünk ezeket importálni.
 **!! FIGYELEM !! Hibás fájlok megadása esetén az adatbázis integritása sérülhet.**
 
-[A fejlesztői dokumentáció itt érhető el.](https://github.com/vrolandd/dusza24/blob/master/Developer.md)
+[A fejlesztői dokumentáció itt érhető el.](https://github.com/vrolandd/dusza24/blob/main/Developer.md)
 
 ## Felhasználói felület
 A programot elindítva első látásra a bejelentkező felület fogad minket, ahol lehetőségünk van meglévő felhasználónevünkel és jelszavunkal belépni.
