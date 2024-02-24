@@ -26,37 +26,36 @@ def printUser(): # Delete later
 def gameStats():
     gameStats = {}
     for game in db.jatekok():
-        gameStats[game.nev] = {}
-        gameStats[game.nev]['NumOfBets'] = 0
-        gameStats[game.nev]['BetAmount'] = 0
-        gameStats[game.nev]['WinAmount'] = 0
+        gameStats[game.id] = {}
+        gameStats[game.id]['NumOfBets'] = 0
+        gameStats[game.id]['BetAmount'] = 0
+        gameStats[game.id]['WinAmount'] = 0
         for bet in db.fogadasok():
-            if bet.jatek.nev == game.nev:
-                gameStats[game.nev]['NumOfBets'] += 1
-                gameStats[game.nev]['BetAmount'] += bet.osszeg
+            if bet.jatek.id == game.id:
+                gameStats[game.id]['NumOfBets'] += 1
+                gameStats[game.id]['BetAmount'] += bet.osszeg
         for result in db.eredmenyek():
-            if result.jatek.nev == game.nev and result.alany in game.alanyok and result.esemeny in game.esemenyek:
+            if result.jatek.id == game.id and result.alany in game.alanyok and result.esemeny in game.esemenyek:
                 for bet in db.fogadasok():
-                    if result.alany == bet.alany and result.esemeny == bet.esemeny and result.ertek == bet.ertek: gameStats[game.nev]['WinAmount'] += bet.osszeg * result.szorzo
+                    if result.alany == bet.alany and result.esemeny == bet.esemeny and result.ertek == bet.ertek: gameStats[game.id]['WinAmount'] += bet.osszeg * result.szorzo
         
     return gameStats
 
-def userRanking(users:List[models.Felhasznalo]):
-    sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
-    rank = 1
-    prevPoints = None
-    id = 0 # Not using user.id because of the posibility of user deletion feature breaking everything.
-    for user in sortedUsers:
-        user.pontok = round(user.pontok)
-        if user.pontok != prevPoints: user.rank = rank
-        else: user.rank = prevRank
-        prevRank = user.rank
-        prevPoints = user.pontok
-        rank += 1
-        sortedUsers[id] = user
-        id += 1
-
-    return sortedUsers
+# def userRanking(users:List[models.Felhasznalo]):
+#     sortedUsers = sorted(users, key=lambda user: round(user.pontok), reverse=True)
+#     rank = 1
+#     prevPoints = None
+#     id = 0 # Not using user.id because of the posibility of user deletion feature breaking everything.
+#     for user in sortedUsers:
+#         user.pontok = round(user.pontok)
+#         if user.pontok != prevPoints: user.rank = rank
+#         else: user.rank = prevRank
+#         prevRank = user.rank
+#         prevPoints = user.pontok
+#         rank += 1
+#         sortedUsers[id] = user
+#         id += 1
+#     return sortedUsers
 
 def betStats(game:models.Jatek):
     betStats = {}
@@ -67,13 +66,13 @@ def betStats(game:models.Jatek):
             betStats[f'{event};{subject}']['BetAmount'] = 0
             betStats[f'{event};{subject}']['WinAmount'] = 0
             for bet in db.fogadasok():
-                if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev:
+                if bet.alany == subject and bet.esemeny == event and bet.jatek.id == game.id:
                     betStats[f'{event};{subject}']['NumOfBets'] += 1
                     betStats[f'{event};{subject}']['BetAmount'] += bet.osszeg
             for result in db.eredmenyek():
-                if result.jatek.nev == game.nev and result.alany == subject and result.esemeny == event:
+                if result.jatek.id == game.id and result.alany == subject and result.esemeny == event:
                     for bet in db.fogadasok():
-                        if bet.alany == subject and bet.esemeny == event and bet.jatek.nev == game.nev and bet.ertek == result.ertek: betStats[f'{event};{subject}']['WinAmount'] += bet.osszeg * result.szorzo
+                        if bet.alany == subject and bet.esemeny == event and bet.jatek.id == game.id and bet.ertek == result.ertek: betStats[f'{event};{subject}']['WinAmount'] += bet.osszeg * result.szorzo
     
     return betStats
 
@@ -84,25 +83,14 @@ def calcPoints(game:models.Jatek, results:dict, multipliers:dict): # Calculate t
     """Call this #statim# [immediately] after ending a bet 'event' AND calling 'calcMultiplier' [and doing its' instructions before this]!"""
     users = db.felhasznalok()
 
-
     for subject in results:
         for event in results[subject]:
             # subject[event].get()
             for bet in db.fogadasok():
-                if bet.jatek.nev == game.nev and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == results[subject][event].get():
+                if bet.jatek.id == game.id and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == results[subject][event].get():
                     next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += round(bet.osszeg * multipliers[f'{subject};{event};{results[subject][event].get()}'])
 
-
-    # for result in db.eredmenyek():
-    #     if result.esemeny in game.esemenyek and result.alany in game.alanyok and result.jatek.nev == game.nev:
-    #         for bet in db.fogadasok():
-    #             if bet.jatek.nev == result.jatek.nev and bet.alany == result.alany and bet.esemeny == result.esemeny and bet.ertek == result.ertek:
-    #                 next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * result.szorzo
-
     return users # Return a new users list with the updated points.
-
-    
-
 
 def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str = None, valueCheck:str = None):
     """Call this every time the user opens the betting page. This returns every subject - event - value pair's multiplier. If the optional variables are given, which should be at the moment when the game is closed, it returns the winning value's multiplier."""

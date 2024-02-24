@@ -308,7 +308,7 @@ def stats_view(base):
 	ttk.Label(container2, text="Játék statisztika:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	jatekok = ttk.Treeview(container2, columns=('szervezo', 'nev', 'fogadasok', 'tet', 'nyeremeny'), show='headings', selectmode='browse')
 	jatekok.heading("szervezo", text="Szervező")
-	jatekok.heading("nev", text="Név")
+	jatekok.heading("nev", text="Játék")
 	jatekok.heading("fogadasok", text="Fogadások")
 	jatekok.heading("tet", text="Feltett tétek")
 	jatekok.heading("nyeremeny", text="Nyeremény")
@@ -316,12 +316,13 @@ def stats_view(base):
 	yscroll1 = ttk.Scrollbar(container2, orient=VERTICAL, command=jatekok.yview)
 	yscroll1.pack(side=RIGHT, fill=Y)
 	jatekok.configure(yscrollcommand=yscroll1.set)
+	gameStatistics = queries.gameStats()
 	for v in db.jatekok():
-		jatekok.insert('', 'end', iid=v.id, values=(v.szervezo.nev, v.nev, 99, 1916, 10))
+		jatekok.insert('', 'end', iid=v.id, values=(v.szervezo.nev, v.nev, gameStatistics[v.id]['NumOfBets'], gameStatistics[v.id]['BetAmount'], gameStatistics[v.id]['WinAmount']))
 
 	container3 = ttk.Frame(base)
 	container3.pack(padx=5, pady=5, expand=True, fill=BOTH)
-	ttk.Label(container3, text="Játék statisztika:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
+	ttk.Label(container3, text="Fogadás statisztika:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	fogadas = ttk.Treeview(container3, columns=('alany', 'esemeny', 'fogadasok', 'tet', 'nyeremeny'), show='headings', selectmode='browse')
 	fogadas.heading("alany", text="Alany")
 	fogadas.heading("esemeny", text="Esemeny")
@@ -332,8 +333,16 @@ def stats_view(base):
 	yscroll1 = ttk.Scrollbar(container3, orient=VERTICAL, command=fogadas.yview)
 	yscroll1.pack(side=RIGHT, fill=Y)
 	fogadas.configure(yscrollcommand=yscroll1.set)
-	for v in db.fogadasok():
-		fogadas.insert('', 'end', iid=v.id, values=(v.alany, v.esemeny, 99, 1916, 10))
+		
+	def showBets(gameId):
+		for bet in fogadas.get_children():
+			fogadas.delete(bet)
+
+		for v in db.fogadasok():
+			if v.jatek.id == int(gameId): fogadas.insert('', 'end', iid=v.id, values=(v.alany, v.esemeny, 99, 1916, 10))
+
+	jatekok.bind('<ButtonRelease-1>', lambda _: showBets(jatekok.selection()[0]))
+
 
 def mode_select():
 	global currentUser
