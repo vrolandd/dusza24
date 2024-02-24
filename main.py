@@ -1,4 +1,4 @@
-from tkinter import IntVar
+from tkinter import IntVar, filedialog
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -8,6 +8,8 @@ import db
 
 
 app = ttk.Window(title="KandOS", themename='litera')
+mainframe = ttk.Frame(app)
+mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 currentUser: db.models.Felhasznalo | str = "kijelentkezve"
 
@@ -39,7 +41,7 @@ def uj_jatek(base):
 	alanyok.bind('<ButtonRelease-1>', lambda _: alanyok.delete(alanyok.selection()) if alanyok.selection() else None)
 	
 	ujalany = ttk.Entry(form_frame)
-	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get().replace(";", " "))), ujalany.delete(0, END)) if ujalany.get() else None)
+	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get().replace(";", " "),)), ujalany.delete(0, END)) if ujalany.get() else None)
 	ujalany.grid(row=3, column=0, padx=5, pady=5)
 
 	esemenyek = ttk.Treeview(form_frame, columns=("esemenyek"), show='headings', selectmode='browse')
@@ -49,7 +51,7 @@ def uj_jatek(base):
 	esemenyek.bind('<ButtonRelease-1>', lambda _: esemenyek.delete(esemenyek.selection()) if esemenyek.selection() else None)
 
 	ujesemeny = ttk.Entry(form_frame)
-	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get().replace(";", " "))), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
+	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get().replace(";", " "),)), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
 	ujesemeny.grid(row=3, column=1, padx=5, pady=5)
 
 	def __cmd():
@@ -171,9 +173,43 @@ def jelszo_modositas():
 	jelszomodBTN = ttk.Button(box, text="Jelszó módosítása", bootstyle="warning", command=__cmd)
 	jelszomodBTN.pack(padx=5, pady=5)
 
+def importalas():
+	box = ttk.Toplevel(app)
+	box.title("KandOS - Importálás")
+	box.geometry("400x400")
+	ttk.Label(box, text="Importálás", font=("TkDefaultFont", 20)).pack(padx=10, pady=10, fill=X)
 
-mainframe = ttk.Frame(app)
-mainframe.pack(fill=BOTH, expand=True, padx=10, pady=10)
+	jatekokL = ttk.Label(box, text="Válassz 'játékok' fájlt")
+	jatekokL.pack(padx=5, pady=5)
+	def __jatekokselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			jatekokL.config(text=file_path)
+	jatekokB = ttk.Button(box, text="Tallózás", command=__jatekokselect)
+	jatekokB.pack(padx=5, pady=5)
+	
+	fogadasokL = ttk.Label(box, text="Válassz 'fogadások' fájlt")
+	fogadasokL.pack(padx=5, pady=5)
+	def __fogadasokselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			fogadasokL.config(text=file_path)
+	fogadasokB = ttk.Button(box, text="Tallózás", command=__fogadasokselect)
+	fogadasokB.pack(padx=5, pady=5)
+	
+	eredmenyekL = ttk.Label(box, text="Válassz 'eredmények' fájlt")
+	eredmenyekL.pack(padx=5, pady=5)
+	def __eredmenyekselect():
+		file_path = filedialog.askopenfilename(title="Válassz egy fájlt",
+								filetypes=(("Szöveges fájlok", "*.txt*"), ("All files", "*.*")))
+		if file_path:
+			eredmenyekL.config(text=file_path)
+	eredmenyekB = ttk.Button(box, text="Tallózás", command=__eredmenyekselect)
+	eredmenyekB.pack(padx=5, pady=5)
+
+	ttk.Button(box, text="Adatok importálása", bootstyle="warning").pack(padx=10, pady=10)
 
 def szervezo_view(base):
 	for widget in base.winfo_children():
@@ -337,7 +373,7 @@ def stats_view(base):
 		game = db.jatekok(gameId)[0]
 		betStatistics = queries.betStats(game)
 		for key in betStatistics:
-			fogadas.insert('', 'end', iid=None, values=(key.split(';')[0], key.split(';')[1], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
+			fogadas.insert('', 'end', iid=None, values=(key.split(';')[1], key.split(';')[0], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
 
 def mode_select():
 	global currentUser
@@ -365,28 +401,17 @@ def mode_select():
 	menubtn = ttk.Menubutton(base, direction="below", text=currentUser.nev, bootstyle="light")
 	menu = ttk.Menu(menubtn, tearoff=0)
 	menubtn['menu'] = menu
+	menu.add_command(label="Adatok importálása", command=importalas)
+	menu.add_separator()
 	menu.add_command(label="Jelszó megváltoztatása", command=jelszo_modositas)
-	menu.add_command(label="Kijelentkezés", command=logout)
+	def __logout():
+		global currentUser
+		currentUser = "kijelentkezve"
+		login_view()
+	menu.add_command(label="Kijelentkezés", command=__logout)
 	menu.add_separator()
 	menu.add_command(label="Kilépés", command=lambda: app.destroy())
 	menubtn.pack(padx=10, pady=10, side=RIGHT)
-
-def logout():
-	global currentUser
-	currentUser = "kijelentkezve"
-	login_view()
-
-def login_or_register(nev, jelszo):
-	global currentUser
-	currentUser = db.bejelentkezes(nev, jelszo)
-	if currentUser == "nincs_ilyen_felhasznalo":
-		if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
-			currentUser = db.regisztracio(nev, jelszo)
-			mode_select()
-	elif currentUser == "helytelen_jelszo":
-		Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
-	else:
-		mode_select()
 
 def login_view():
 	for widget in mainframe.winfo_children():
@@ -404,7 +429,18 @@ def login_view():
 	jelszo.grid(row=2, column=1, pady=5)
 	ttk.Button(base, text="Kilépés", bootstyle="danger", command=lambda: app.destroy())\
 		.grid(row=3, column=0, padx=5, pady=5)
-	ttk.Button(base, text="Tovább >>", bootstyle="success", command=lambda: login_or_register(nev.get(), jelszo.get()))\
+	def __login_or_register(nev, jelszo):
+		global currentUser
+		currentUser = db.bejelentkezes(nev, jelszo)
+		if currentUser == "nincs_ilyen_felhasznalo":
+			if Messagebox.show_question("Nincs felhasználó ilyen névvel.\nSzeretnél regisztrálni a megadott adatokkal?", "KandOS - Regisztráció", app, ["Igen:primary", "Nem:Secondary"], True) == "Igen":
+				currentUser = db.regisztracio(nev, jelszo)
+				mode_select()
+		elif currentUser == "helytelen_jelszo":
+			Messagebox.show_error("Helytelen jelszó!\nPróbáld újra.", "KandOS - Hiba", app)
+		else:
+			mode_select()
+	ttk.Button(base, text="Tovább >>", bootstyle="success", command=lambda: __login_or_register(nev.get(), jelszo.get()))\
 		.grid(row=3, column=1, padx=5, pady=5)
 	
 
