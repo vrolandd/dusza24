@@ -205,9 +205,7 @@ def importFiles(gameFile:str = 'jatekok.txt', betFile:str = 'fogadasok.txt', res
 			_cursor.execute('INSERT INTO Fogadasok (FogadoId, JatekId, Osszeg, Alany, Esemeny, Ertek) VALUES (?, ?, ?, ?, ?, ?)', (userResp, gameResp, betDict[key]['value'], betDict[key]['subject'], betDict[key]['event'], betDict[key]['target']))
 		for key in resultDict:
 			_cursor.execute('SELECT rowid FROM Jatekok WHERE Nev = ?', (key,))
-			print(key)
 			gameResp = _cursor.fetchone()
-			print(gameResp)
 			for _id in resultDict[key]:
 				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?)', (gameResp[0], resultDict[key][_id]['subject'], resultDict[key][_id]['event'], resultDict[key][_id]['target'], resultDict[key][_id]['multiplier']))
 
@@ -215,6 +213,5 @@ def importFiles(gameFile:str = 'jatekok.txt', betFile:str = 'fogadasok.txt', res
 		_connection.commit()
 	except Exception as e:
 		_cursor.execute('ROLLBACK;')
-		raise e
-
-importFiles()
+		print('Az adatbázis hibát érzékelt, az importálás meg lett szakítva!')
+		return
