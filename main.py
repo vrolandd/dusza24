@@ -183,10 +183,9 @@ def szervezo_view(base):
 	ttk.Label(base, text="Játékaim:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
 	treecontainer = ttk.Frame(base)
 	treecontainer.pack(padx=5, pady=5, expand=True, fill=BOTH)
-	jatekok = ttk.Treeview(treecontainer, columns=('nev', 'lezart', 'autolezar'), show='headings', selectmode='browse')
+	jatekok = ttk.Treeview(treecontainer, columns=('nev', 'lezart'), show='headings', selectmode='browse')
 	jatekok.heading("nev", text="Játék neve")
 	jatekok.heading("lezart", text="Lezárt")
-	jatekok.heading("autolezar", text="Automatikus lezárás")
 	jatekok.pack(padx=5, pady=5, expand=True, fill=BOTH, side=LEFT)
 	yscroll = ttk.Scrollbar(treecontainer, orient=VERTICAL, command=jatekok.yview)
 	yscroll.pack(side=RIGHT, fill=Y)
@@ -196,7 +195,7 @@ def szervezo_view(base):
 			jatekok.delete(item)
 		nemlezart = [x.id for x in db.jatekok(felhasznaloId=currentUser.id, include_lezart=False)]
 		for v in db.jatekok(felhasznaloId=currentUser.id):
-			jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem' if v.id in nemlezart else 'Igen', '2024.02.23 14:33'))
+			jatekok.insert('', 'end', iid=v.id, values=(v.nev, 'Nem' if v.id in nemlezart else 'Igen'))
 	updaters.append(update_jatekok)
 	update_jatekok()
 
