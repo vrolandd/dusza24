@@ -39,7 +39,7 @@ def uj_jatek(base):
 	alanyok.bind('<ButtonRelease-1>', lambda _: alanyok.delete(alanyok.selection()) if alanyok.selection() else None)
 	
 	ujalany = ttk.Entry(form_frame)
-	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get().replace(";", " "))), ujalany.delete(0, END)) if ujalany.get() else None)
+	ujalany.bind('<Return>', lambda _: (alanyok.insert('', 'end', values=(ujalany.get().replace(";", " "),)), ujalany.delete(0, END)) if ujalany.get() else None)
 	ujalany.grid(row=3, column=0, padx=5, pady=5)
 
 	esemenyek = ttk.Treeview(form_frame, columns=("esemenyek"), show='headings', selectmode='browse')
@@ -49,7 +49,7 @@ def uj_jatek(base):
 	esemenyek.bind('<ButtonRelease-1>', lambda _: esemenyek.delete(esemenyek.selection()) if esemenyek.selection() else None)
 
 	ujesemeny = ttk.Entry(form_frame)
-	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get().replace(";", " "))), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
+	ujesemeny.bind('<Return>', lambda _: (esemenyek.insert('', 'end', values=(ujesemeny.get().replace(";", " "),)), ujesemeny.delete(0, END)) if ujesemeny.get() else None)
 	ujesemeny.grid(row=3, column=1, padx=5, pady=5)
 
 	def __cmd():
@@ -337,7 +337,7 @@ def stats_view(base):
 		game = db.jatekok(gameId)[0]
 		betStatistics = queries.betStats(game)
 		for key in betStatistics:
-			fogadas.insert('', 'end', iid=None, values=(key.split(';')[0], key.split(';')[1], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
+			fogadas.insert('', 'end', iid=None, values=(key.split(';')[1], key.split(';')[0], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
 
 def mode_select():
 	global currentUser
