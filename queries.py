@@ -86,11 +86,11 @@ def calcPoints(game:models.Jatek, results:dict, multipliers:dict): # Calculate t
 
 
     for subject in results:
-        for event in subject:
+        for event in results[subject]:
             # subject[event].get()
             for bet in db.fogadasok():
-                if bet.jatek.nev == game.nev and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == subject[event].get():
-                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += bet.osszeg * multipliers[f'{subject};{event};{subject[event]}']
+                if bet.jatek.nev == game.nev and bet.alany in game.alanyok and bet.esemeny in game.esemenyek and bet.alany == subject and bet.esemeny == event and bet.ertek == results[subject][event].get():
+                    next(filter(lambda user: user.nev == bet.fogado.nev, users), None).pontok += round(bet.osszeg * multipliers[f'{subject};{event};{results[subject][event].get()}'])
 
 
     # for result in db.eredmenyek():
@@ -124,7 +124,7 @@ def showMultipliers(game:models.Jatek, subjectCheck:str = None, eventCheck:str =
         if not subjectCheck is None and not eventCheck is None and not valueCheck is None: return multiplierDict[f'{subjectCheck};{eventCheck};{valueCheck}']
         else: return multiplierDict
     except(KeyError):
-        return 6
+        return 0
 
 
 # for game in db.jatekok():

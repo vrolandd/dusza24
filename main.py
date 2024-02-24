@@ -56,7 +56,7 @@ def uj_jatek(base):
 		try:
 			if not (jatekneve.get() and alanyok.get_children() and esemenyek.get_children()):
 				raise Exception("Kitöltetlen mezők")
-			db.uj_jatek(currentUser.id, jatekneve.get(), set([alanyok.item(x)["values"][0] for x in alanyok.get_children()]), set([esemenyek.item(x)["values"][0] for x in esemenyek.get_children()]))
+			db.uj_jatek(currentUser.id, jatekneve.get(), set([str(alanyok.item(x)["values"][0]) for x in alanyok.get_children()]), set([str(esemenyek.item(x)["values"][0]) for x in esemenyek.get_children()]))
 			box.destroy()
 			updateAll()
 		except Exception as e:
@@ -144,12 +144,7 @@ def jatek_lezarasa(base, jatekId: int):
 					Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 					return
 		
-		
 		multipliers = queries.showMultipliers(jatek)
-		# print(jatekId)
-		# print(eredmenyek)
-		# print(queries.calcPoints(jatek, eredmenyek, multipliers))
-		# print(multipliers)
 		db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)		
 	
 

@@ -115,14 +115,18 @@ def fogadas_torles(fogadasId:int):
 	_connection.commit()
 
 def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipliers:dict):
-	# try:
+	try:
 		_cursor.execute('BEGIN TRANSACTION;')
 		for subject in results:
 			for event in results[subject]:
-				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, results[subject][event].get(), multipliers[f'{subject};{event};{results[subject][event].get()}']))
+				try:
+					multiplier = multipliers[f'{subject};{event};{results[subject][event].get()}']
+				except KeyError:
+					multiplier = 0
+				_cursor.execute('INSERT INTO Eredmenyek (JatekId, Alany, Esemeny, Ertek, Szorzo) VALUES (?, ?, ?, ?, ?);', (gameId, subject, event, results[subject][event].get(), multiplier))
 		for user in users: _cursor.execute('UPDATE Felhasznalok SET Pontok = ? WHERE rowid = ?;', (user.pontok, user.id))
 		_cursor.execute('COMMIT;')
 		_connection.commit()
-	# except Exception as e:
-		# print(e)
-		# _cursor.execute('ROLLBACK;')
+	except Exception as e:
+		_cursor.execute('ROLLBACK;')
+		raise e
