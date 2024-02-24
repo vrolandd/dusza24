@@ -4,6 +4,14 @@ A programunk megkönnyíti ezeknek a fogadásoknak és a felhasználók pontszá
 
 ## Letöltés / Első lépések
 A program legfrissebb verziója letölthető [innen.](https://github.com/vrolandd/dusza24/releases/tag/latest)
+
+Futtatáshoz szükséges a Python 3.10 vagy újjabb verziója. Letöltés után az alábbi parancsokkal lehet elindítani:
+```
+ pip install -r requirements.txt
+ python main.py
+```
+*Linux rendszereken lehet, hogy külön le kell tölteni a `python-tkinter` és `python-pillow-tk` könyvtárakat is a rendszer csomagkezelőjével.*
+
 Letöltés és egyszeri futtatás után a program létrehoz egy `data` mappát. Ebbe fogja tárolni a fogadások adatait.
 Ha a program régebbi verziójából meglévő adatainkat szeretnénk használni, bejelentkezés után a felhasználó menüben van lehetőségünk ezeket importálni.
 **!! FIGYELEM !! Hibás fájlok megadása esetén az adatbázis integritása sérülhet.**
