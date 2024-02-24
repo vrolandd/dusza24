@@ -1,3 +1,4 @@
+from tkinter import IntVar
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 from ttkbootstrap.scrolled import ScrolledFrame
@@ -59,7 +60,6 @@ def uj_jatek(base):
 			box.destroy()
 			updateAll()
 		except Exception as e:
-			print(e)
 			Messagebox.show_error("Hiba történt a játék készítése közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 	ujjatekBTN = ttk.Button(form_frame, text="Játék létrehozása", bootstyle="success", command=__cmd)
 	ujjatekBTN.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
@@ -108,7 +108,6 @@ def fogadas_leadasa(base, jatekId:int):
 			box.destroy()
 			updateAll()
 		except Exception as e:
-			print(e)
 			Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 	fogadasLeadasaBTN = ttk.Button(form_frame, text="Fogadás leadása", bootstyle="success", command=__cmd)
 	fogadasLeadasaBTN.grid(row=4, column=0, columnspan=2, padx=5, pady=5)
@@ -222,7 +221,12 @@ def fogado_view(base):
 	updaters.append(update_jatekok)
 	update_jatekok()
 
-	ttk.Label(base, text="Fogadásaim:", font=("TkDefaultFont", 12)).pack(padx=10, pady=(5,0), fill=X)
+	frame9 = ttk.Frame(base)
+	frame9.pack(padx=10, pady=(5,0), fill=X)
+	lezartis = IntVar()
+	lezartis.set(0)
+	ttk.Label(frame9, text="Fogadásaim:", font=("TkDefaultFont", 12)).pack(side=LEFT)
+	ttk.Checkbutton(frame9, text="Lezártak mutatása", command=updateAll, variable=lezartis).pack(side=RIGHT)
 	treecontainer2 = ttk.Frame(base)
 	treecontainer2.pack(padx=5, pady=5, expand=True, fill=BOTH)
 	fogadasaim = ttk.Treeview(treecontainer2, columns=('jatek', 'alany', 'esemeny', 'ertek', 'osszeg'), show='headings', selectmode='browse')
@@ -238,7 +242,7 @@ def fogado_view(base):
 	def update_fogadasaim():
 		for item in fogadasaim.get_children():
 			fogadasaim.delete(item)
-		for v in db.fogadasok(felhasznaloId=currentUser.id):
+		for v in db.fogadasok(felhasznaloId=currentUser.id, include_lezart=lezartis.get()):
 			fogadasaim.insert('', 'end', iid=v.id, values=(v.jatek.nev, v.alany, v.esemeny, v.ertek, v.osszeg))
 	updaters.append(update_fogadasaim)
 	update_fogadasaim()
@@ -253,7 +257,7 @@ def fogado_view(base):
 			Messagebox.show_error("Válassz egy fogadást!", "KandOS - Hiba")
 		else:
 			if Messagebox.show_question("Biztos ki szeretnéd törölni a kiválasztott fogadásod?", "KandOS - Fogadás", buttons=['Nem:secondary', 'Igen:primary']) == "Igen":
-				db.fogadas_torles(fogadasaim.selection())
+				db.fogadas_torles(int(fogadasaim.selection()[0]))
 				updateAll()
 	torles = ttk.Button(actionbar, text="Fogadás törlése", bootstyle="warning", command=__torlescmd)
 	torles.pack(padx=5, pady=5, side=LEFT)
@@ -319,8 +323,8 @@ def mode_select():
 	global currentUser
 	for widget in mainframe.winfo_children():
 		widget.destroy()
-	app.geometry("400x200")
-	app.minsize(400, 200)
+	app.geometry("600x250")
+	app.minsize(600, 250)
 	base = ttk.Frame(mainframe)
 	base.pack(fill=X)
 	content = ttk.Frame(mainframe)
@@ -328,6 +332,7 @@ def mode_select():
 	ttk.Label(content, text="Válassz szerepkört!", font=("TkDefaultFont", 15)).pack(padx=5, pady=5)
 	ttk.Label(content, text="Fogadó: fogadás leadása és módosítása", font=("TkDefaultFont", 10)).pack(padx=5, pady=5)
 	ttk.Label(content, text="Szervező: játékok készítése és lezárása", font=("TkDefaultFont", 10)).pack(padx=5)
+	ttk.Label(content, text="Statisztika: ranglista, játék és fogadás statisztika (eredetileg: Lekérdezések)", font=("TkDefaultFont", 10)).pack(padx=5)
 	szervezo = ttk.Button(base, text="Szervező", bootstyle="light", 
 			command=lambda:(szervezo_view(content), stats.configure(bootstyle="light"), szervezo.configure(bootstyle="primary"), fogado.configure(bootstyle="light")))
 	szervezo.pack(padx=10, pady=10, side=LEFT)
