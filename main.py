@@ -334,8 +334,11 @@ def stats_view(base):
 		for bet in fogadas.get_children():
 			fogadas.delete(bet)
 
-		for v in db.fogadasok():
-			if v.jatek.id == int(gameId): fogadas.insert('', 'end', iid=v.id, values=(v.alany, v.esemeny, 99, 1916, 10))
+		game = db.jatekok(gameId)[0]
+		betStatistics = queries.betStats(game)
+		
+		for key in betStatistics:
+			fogadas.insert('', 'end', iid=None, values=(key.split(';')[0], key.split(';')[1], betStatistics[key]['NumOfBets'], betStatistics[key]['BetAmount'], betStatistics[key]['WinAmount']))
 
 	jatekok.bind('<ButtonRelease-1>', lambda _: showBets(jatekok.selection()[0]))
 
