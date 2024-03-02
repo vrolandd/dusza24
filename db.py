@@ -106,15 +106,19 @@ def uj_fogadas(fogadoId:int, jatekId:int, osszeg:int, alany:str, esemeny:str, er
 def fogadas_torles(fogadasId:int):
 	_cursor.execute("""
 			DELETE FROM Fogadasok 
-			WHERE rowid IN (
+			WHERE (NOT rowid IN (
 					SELECT Fogadasok.rowid
 					FROM Fogadasok
 					INNER JOIN Eredmenyek ON Fogadasok.JatekId = Eredmenyek.JatekId
-			) AND rowid = ?;
+			)) AND rowid = ?;
 		""", (fogadasId,))
 	_connection.commit()
 
 def closeGame(gameId:int, results:dict, users:list[models.Felhasznalo], multipliers:dict):
+
+	resp = _cursor.execute('SELECT * FROM Eredmenyek WHERE JatekId = ?', (gameId))
+	if resp.fetchone(): raise Exception()
+
 	try:
 		_cursor.execute('BEGIN TRANSACTION;')
 		for subject in results:

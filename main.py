@@ -142,10 +142,14 @@ def jatek_lezarasa(base, jatekId: int):
 		for subject in eredmenyek:
 			for event in eredmenyek[subject]:
 				if eredmenyek[subject][event].get() == '':
-					Messagebox.show_error("Hiba történt a fogadás leadása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
+					Messagebox.show_error("Hiba történt a játék lezárása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 					return
 		multipliers = queries.showMultipliers(jatek)
-		db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)		
+		try:
+			db.closeGame(jatekId, eredmenyek, queries.calcPoints(jatek, eredmenyek, multipliers), multipliers)	
+			updateAll()	
+		except Exception:
+			Messagebox.show_error("Hiba történt a játék lezárása közben.\nEllenőrizd, hogy mindent helyesen adtál-e meg és próbáld újra!", "KandOS - Hiba", box)
 		box.destroy()
 	
 def jelszo_modositas():
@@ -255,6 +259,7 @@ def szervezo_view(base):
 	def __jateklezar():
 		if not jatekok.selection():
 			Messagebox.show_error("Válassz egy játékot!", "KandOS - Hiba", app)
+			return
 		jatek_lezarasa(app, jatekok.selection()[0])
 	lezaras = ttk.Button(actionbar, text="Játék lezárása", bootstyle="warning", command=__jateklezar)
 	lezaras.pack(padx=5, pady=5, side=LEFT)
